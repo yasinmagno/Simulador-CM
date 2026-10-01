@@ -1,0 +1,29 @@
+{
+  "id": 9,
+  "nome": "Recuperação",
+  "descricao": "Restabelecimento progressivo dos componentes a partir do Cenário 8. Regresso à operação normal.",
+  "sequencia": [
+    {
+      "passo": 1,
+      "descricao": "Restabelecer PtP",
+      "input_override": { "ptp_ativo": true, "g4_local_disponivel": false, "g4_externo_disponivel": false, "isp_ativo": false, "satelite_ativo": true },
+      "estado_esperado": "EMERGÊNCIA"
+    },
+    {
+      "passo": 2,
+      "descricao": "Restabelecer 4G/5G",
+      "input_override": { "ptp_ativo": true, "g4_local_disponivel": true, "g4_externo_disponivel": true, "isp_ativo": false, "satelite_ativo": true },
+      "estado_esperado": "EMERGÊNCIA"
+    },
+    {
+      "passo": 3,
+      "descricao": "Restabelecer ISP/fibra",
+      "input_override": { "ptp_ativo": true, "g4_local_disponivel": true, "g4_externo_disponivel": true, "isp_ativo": true, "satelite_ativo": true },
+      "estado_esperado": "NORMAL"
+    }
+  ],
+  "estado_esperado": "NORMAL",
+  "caminho_local_esperado": "PtP",
+  "caminho_externo_esperado": "ISP/fibra",
+  "nota": "Cada passo deve produzir evento no registo e atualizar o dashboard. Estado final deve ser NORMAL."
+}

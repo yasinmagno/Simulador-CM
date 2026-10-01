@@ -1,0 +1,19 @@
+{
+  "id": 1,
+  "nome": "Operação Normal",
+  "descricao": "Todos os componentes principais disponíveis. Estado de referência.",
+  "input_override": {
+    "ptp_ativo": true,
+    "g4_local_disponivel": true,
+    "g4_externo_disponivel": true,
+    "isp_ativo": true,
+    "satelite_ativo": true,
+    "edm_hcm": true,
+    "edm_guaxene": true,
+    "l_ambiente_db": 0
+  },
+  "estado_esperado": "NORMAL",
+  "caminho_local_esperado": "PtP",
+  "caminho_externo_esperado": "ISP/fibra",
+  "nota": "Cenário base. Todos os indicadores de referência devem corresponder ao relatório técnico."
+}

@@ -1,0 +1,19 @@
+{
+  "id": 3,
+  "nome": "Falha da Rede Móvel",
+  "descricao": "Rede 4G/5G indisponível. PtP assegura continuidade da ligação local.",
+  "input_override": {
+    "ptp_ativo": true,
+    "g4_local_disponivel": false,
+    "g4_externo_disponivel": false,
+    "isp_ativo": true,
+    "satelite_ativo": true,
+    "edm_hcm": true,
+    "edm_guaxene": true,
+    "l_ambiente_db": 0
+  },
+  "estado_esperado": "NORMAL",
+  "caminho_local_esperado": "PtP",
+  "caminho_externo_esperado": "ISP/fibra",
+  "nota": "PtP continua a assegurar a ligação local. A indisponibilidade da rede móvel não afeta o caminho principal."
+}

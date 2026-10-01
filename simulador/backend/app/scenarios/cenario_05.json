@@ -1,0 +1,26 @@
+{
+  "id": 5,
+  "nome": "Corte de Energia (EDM)",
+  "descricao": "EDM cortada em ambos os locais. Equipamentos alimentados por bateria. Demonstra autonomia e eventual contribuição solar.",
+  "input_override": {
+    "ptp_ativo": true,
+    "g4_local_disponivel": true,
+    "g4_externo_disponivel": true,
+    "isp_ativo": true,
+    "satelite_ativo": true,
+    "edm_hcm": false,
+    "edm_guaxene": false,
+    "bateria_hcm_wh": 12000,
+    "bateria_guaxene_wh": 3600,
+    "l_ambiente_db": 0
+  },
+  "estado_esperado": "EMERGÊNCIA",
+  "caminho_local_esperado": "PtP",
+  "caminho_externo_esperado": "ISP/fibra",
+  "indicadores_esperados": {
+    "autonomia_hcm_h": 86.4,
+    "autonomia_guaxene_h": 86.4,
+    "autonomia_minima_h": 72
+  },
+  "nota": "Baterias dimensionadas para 86.4 h (com margem). Requisito mínimo: 72 h. Solar como extensão opcional."
+}

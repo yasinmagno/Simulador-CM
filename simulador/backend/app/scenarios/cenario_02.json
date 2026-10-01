@@ -1,0 +1,19 @@
+{
+  "id": 2,
+  "nome": "Falha do PtP",
+  "descricao": "Enlace PtP indisponível. Demonstra failover para rede móvel 4G/5G.",
+  "input_override": {
+    "ptp_ativo": false,
+    "g4_local_disponivel": true,
+    "g4_externo_disponivel": true,
+    "isp_ativo": true,
+    "satelite_ativo": true,
+    "edm_hcm": true,
+    "edm_guaxene": true,
+    "l_ambiente_db": 0
+  },
+  "estado_esperado": "DEGRADADO",
+  "caminho_local_esperado": "4G/5G",
+  "caminho_externo_esperado": "ISP/fibra",
+  "nota": "Capacidade 4G/5G pode ser inferior ao PtP. Registar evento de failover PtP → 4G/5G."
+}

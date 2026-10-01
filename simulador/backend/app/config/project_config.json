@@ -1,0 +1,98 @@
+{
+  "rf": {
+    "distancia_km": 3.69,
+    "frequencia_ghz": 5.8,
+    "canal_mhz": 20,
+    "p_tx_dbm": 3,
+    "p_tx_nota": "Resulta do dimensionamento inverso: EIRP(36) - G_Tx(34) + L_Tx(1) = 3 dBm. NAO alterar.",
+    "g_tx_dbi": 34,
+    "l_tx_db": 1,
+    "eirp_dbm": 36,
+    "g_rx_dbi": 34,
+    "l_rx_db": 1,
+    "l_misc_db": 1,
+    "l_ambiente_db": 0,
+    "l_ambiente_nota": "0 dB no cenario base (Cenario 1). Modificado pelos Cenarios 6 e 7.",
+    "nf_db": 5.0,
+    "nf_fonte": "premissa academica — extrair do datasheet AF-5XHD e actualizar",
+    "equipamento_referencia": "AF-5XHD (Ubiquiti)",
+    "sensibilidades_dbm": {
+      "QPSK_MIMO":  -85,
+      "16QAM_MIMO": -81,
+      "64QAM":      -75,
+      "256QAM":     -69,
+      "1024QAM":    -63
+    },
+    "capacidade_referencia_mbps": {
+      "QPSK_MIMO":  24.32,
+      "16QAM_MIMO": 48.64,
+      "64QAM":      72.96,
+      "256QAM":     97.28,
+      "1024QAM":    121.60
+    },
+    "capacidade_referencia_nota": "Escaladas a partir de QPSK_MIMO 24.32 Mbps (premissa academica).",
+    "capacidade_minima_mbps": 15,
+    "min_fm_threshold_db": 3.0,
+    "min_fm_threshold_nota": "Limiar minimo de FM para operacao estavel. Premissa academica — nao e especificacao do fabricante."
+  },
+  "geography": {
+    "hcm": {
+      "nome": "Hospital Central de Maputo",
+      "latitude": -25.96897,
+      "longitude": 32.58889,
+      "altitude_terreno_m": 20,
+      "altitude_fonte": "ilustrativo — substituir pelo valor do relatorio tecnico aprovado",
+      "altura_antena_m": 15,
+      "altura_antena_fonte": "ilustrativo — substituir pelo valor do relatorio tecnico aprovado"
+    },
+    "guaxene": {
+      "nome": "Escola Primaria Completa de Guaxene",
+      "latitude": -25.98556,
+      "longitude": 32.55694,
+      "altitude_terreno_m": 5,
+      "altitude_fonte": "ilustrativo — substituir pelo valor do relatorio tecnico aprovado",
+      "altura_antena_m": 10,
+      "altura_antena_fonte": "ilustrativo — substituir pelo valor do relatorio tecnico aprovado"
+    },
+    "distancia_rf_km": 3.69,
+    "distancia_nota": "Distancia adotada no relatorio. Haversine sobre as coordenadas produz ~3.692 km."
+  },
+  "energy": {
+    "hcm": {
+      "carga_w": 100,
+      "bateria_wh": 12000,
+      "dod": 0.8,
+      "eficiencia": 0.9,
+      "solar_wp_min": 800,
+      "solar_wp_max": 1000,
+      "autonomia_minima_h": 72
+    },
+    "guaxene": {
+      "carga_w": 30,
+      "bateria_wh": 3600,
+      "dod": 0.8,
+      "eficiencia": 0.9,
+      "solar_wp_min": 300,
+      "solar_wp_max": 400,
+      "autonomia_minima_h": 72
+    }
+  },
+  "terrain": {
+    "fonte": "ilustrativo — substituir por perfil SRTM/Copernicus ao longo do percurso",
+    "n_amostras": 50,
+    "nota": "50 amostras de elevacao (m) do ponto HCM ao ponto Guaxene. Necessario para funcionamento offline.",
+    "elevacoes_m": [20.0, 19.7, 19.4, 19.1, 18.8, 18.5, 18.2, 18.0, 17.7, 17.5, 17.4, 17.3, 17.2, 17.2, 17.3, 17.3, 17.4, 17.4, 17.3, 17.2, 16.9, 16.5, 15.9, 15.3, 14.7, 14.0, 13.3, 12.7, 12.1, 11.6, 11.1, 10.7, 10.3, 10.0, 9.6, 9.3, 9.0, 8.7, 8.4, 8.1, 7.8, 7.4, 7.1, 6.8, 6.5, 6.2, 5.9, 5.6, 5.3, 5.0]
+  },
+  "traffic": {
+    "servicos": [
+      {"id": "voip",   "nome": "Voz / VoIP",           "mbps": 0.4,  "prioridade": 1, "vlan": 10},
+      {"id": "alertas","nome": "Alertas e sinalizacao", "mbps": 0.5,  "prioridade": 1, "vlan": 10},
+      {"id": "saude",  "nome": "Dados de saude",        "mbps": 5.0,  "prioridade": 2, "vlan": 20},
+      {"id": "video",  "nome": "Video / telecoordenacao","mbps": 3.0,  "prioridade": 3, "vlan": 20},
+      {"id": "admin",  "nome": "Administracao",         "mbps": 0.0,  "prioridade": 4, "vlan": 30},
+      {"id": "internet","nome": "Internet geral",       "mbps": 0.0,  "prioridade": 4, "vlan": 40}
+    ],
+    "margem_mbps": 4.1,
+    "requisito_total_mbps": 15
+  }
+}

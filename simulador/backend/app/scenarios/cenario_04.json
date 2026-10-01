@@ -1,0 +1,19 @@
+{
+  "id": 4,
+  "nome": "Falha da Internet Externa",
+  "descricao": "ISP/fibra e 4G externo indisponíveis. PtP local operacional. Satélite é a contingência externa no HCM.",
+  "input_override": {
+    "ptp_ativo": true,
+    "g4_local_disponivel": true,
+    "g4_externo_disponivel": false,
+    "isp_ativo": false,
+    "satelite_ativo": true,
+    "edm_hcm": true,
+    "edm_guaxene": true,
+    "l_ambiente_db": 0
+  },
+  "estado_esperado": "EMERGÊNCIA",
+  "caminho_local_esperado": "PtP",
+  "caminho_externo_esperado": "Satélite",
+  "nota": "Demonstrar que a comunicação local HCM↔Guaxene continua pelo PtP mesmo sem Internet. Satélite fornece conectividade externa apenas ao HCM."
+}

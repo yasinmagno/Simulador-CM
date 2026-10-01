@@ -1,0 +1,19 @@
+{
+  "id": 8,
+  "nome": "Situação Crítica",
+  "descricao": "PtP e 4G/5G indisponíveis. Satélite disponível apenas no HCM. Guaxene isolada.",
+  "input_override": {
+    "ptp_ativo": false,
+    "g4_local_disponivel": false,
+    "g4_externo_disponivel": false,
+    "isp_ativo": false,
+    "satelite_ativo": true,
+    "edm_hcm": true,
+    "edm_guaxene": true,
+    "l_ambiente_db": 0
+  },
+  "estado_esperado": "CRÍTICO",
+  "caminho_local_esperado": "Nenhum",
+  "caminho_externo_esperado": "Satélite",
+  "nota": "O satélite instalado apenas no HCM NÃO restabelece a comunicação com Guaxene. Guaxene fica isolada. Demonstrar esta limitação arquitetural."
+}

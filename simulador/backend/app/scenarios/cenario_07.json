@@ -1,0 +1,19 @@
+{
+  "id": 7,
+  "nome": "Degradação RF",
+  "descricao": "Condições adversas de receção e interferência. Observar impacto no SNR, na modulação e na margem de desvanecimento.",
+  "input_override": {
+    "ptp_ativo": true,
+    "g4_local_disponivel": true,
+    "g4_externo_disponivel": true,
+    "isp_ativo": true,
+    "satelite_ativo": true,
+    "edm_hcm": true,
+    "edm_guaxene": true,
+    "l_ambiente_db": 10.0
+  },
+  "estado_esperado": "DEGRADADO",
+  "caminho_local_esperado": "PtP",
+  "caminho_externo_esperado": "ISP/fibra",
+  "nota": "L_ambiente = 10 dB força degradação significativa. P_R ≈ -61.05 dBm. FM(256QAM) ≈ 7.95 dB < 17.95 → DEGRADADO. Modulação cai para 64-QAM ou inferior."
+}
