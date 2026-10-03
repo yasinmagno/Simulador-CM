@@ -56,8 +56,11 @@ const CALCS: Record<string, CalcEntry> = {
   },
   energia: {
     titulo: 'Autonomia Energética',
-    formula: 'Autonomia = E_bat × DoD × η / P_carga',
-    substituicao: (r) => r ? `HCM: 12 000 × 0,8 × 0,9 / 100 = 86,4 h  |  Guaxene: 3 600 × 0,8 × 0,9 / 30 = 86,4 h` : '—',
+    formula: 'Autonomia restante = (E_bat − E_min) × η / P_carga  |  E_min = E_max × (1 − DoD)',
+    substituicao: (r) => r
+      ? `HCM: (${r.energy.hcm_bateria_wh.toFixed(0)} − 2 400) × 0,9 / 100  |  Guaxene: (${r.energy.guaxene_bateria_wh.toFixed(0)} − 720) × 0,9 / 30`
+      + '  ·  Cheia: 12 000 × 0,8 × 0,9 / 100 = 86,4 h'
+      : '—',
     resultado:    (r) => r ? `HCM: ${r.energy.hcm_autonomia_h.toFixed(1)} h  |  Guaxene: ${r.energy.guaxene_autonomia_h.toFixed(1)} h` : '—',
     interpretacao: (r) => r ? `Requisito mínimo: 72 h. Calculado: 86,4 h (com margem de dimensionamento). ${r.energy.energia_nominal ? 'EDM disponível.' : 'A funcionar em bateria.'}` : '—',
   },

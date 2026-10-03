@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import clsx from 'clsx';
+import { useSimulation } from '@/store/simulation';
 
 const LeafletMap = dynamic(() => import('./LeafletMap'), {
   ssr: false,
@@ -20,16 +21,22 @@ const CesiumView = dynamic(() => import('./CesiumView'), {
   ),
 });
 
-type MapMode = '2d' | '3d';
+const NetworkSchematic = dynamic(() => import('./NetworkSchematic').then((m) => m.NetworkSchematic), { ssr: false });
+
+type MapMode = 'esquema' | '2d' | '3d';
+const LABEL: Record<MapMode, string> = { esquema: 'Esquema', '2d': '2D', '3d': '3D' };
 
 export function MapView() {
-  const [mapMode, setMapMode] = useState<MapMode>('2d');
+  const [mapMode, setMapMode] = useState<MapMode>('esquema');
+  const { result } = useSimulation();
+  const estado = result?.network.estado;
+  const chuva = result?.input.l_ambiente_db ?? 0;
 
   return (
     <div className="h-full w-full relative">
       {/* Toggle 2D / 3D */}
       <div className="absolute top-2 right-2 z-[1000] flex gap-0.5 bg-white/90 rounded-md shadow-sm border border-gray-200 p-0.5">
-        {(['2d', '3d'] as MapMode[]).map((m) => (
+        {(['esquema', '2d', '3d'] as MapMode[]).map((m) => (
           <button
             key={m}
             onClick={() => setMapMode(m)}
@@ -40,12 +47,21 @@ export function MapView() {
                 : 'text-gray-500 hover:text-gray-800'
             )}
           >
-            {m.toUpperCase()}
+            {LABEL[m]}
           </button>
         ))}
       </div>
 
-      {mapMode === '2d' ? <LeafletMap /> : <CesiumView />}
+      {mapMode === 'esquema' ? <NetworkSchematic /> : mapMode === '2d' ? <LeafletMap /> : <CesiumView />}
+
+      {/* Chuva sobre o mapa quando há atenuação extra */}
+      {chuva > 0 && mapMode !== 'esquema' && (
+        <div className="chuva-overlay pointer-events-none absolute inset-0 z-[500]" style={{ opacity: Math.min(0.25 + chuva / 20, 0.9) }} />
+      )}
+      {/* Borda a pulsar em CRÍTICO / FALHA */}
+      {(estado === 'CRÍTICO' || estado === 'FALHA') && (
+        <div className="borda-critica pointer-events-none absolute inset-0 z-[600]" />
+      )}
     </div>
   );
 }

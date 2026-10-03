@@ -21,14 +21,24 @@ Modela o enlace PtP a 5,8 GHz entre o Hospital Central de Maputo e a EPC Guaxene
 
 ```bash
 cd backend
-python -m pip install -r requirements.txt
+py -3.12 -m venv venv
+venv\Scripts\python -m pip install -r requirements.txt
 ```
+
+> Os scripts de arranque (`iniciar.bat`, `npm run dev`) usam `backend\venv\Scripts\python`.
 
 ### 2. Frontend (Next.js)
 
 ```bash
 cd frontend
+npm install   # o postinstall copia os assets do Cesium para public/cesium
+```
+
+### 3. Raiz (opcional — arranque com um só comando)
+
+```bash
 npm install
+npm run dev   # backend + frontend em simultâneo
 ```
 
 ---
@@ -40,7 +50,7 @@ Abrir **dois terminais** na pasta `simulador/`:
 **Terminal 1 — Backend:**
 ```bash
 cd backend
-python -m uvicorn app.main:app --reload
+venv\Scripts\python -m uvicorn app.main:app --reload
 # Disponível em http://localhost:8000
 # Documentação automática: http://localhost:8000/docs
 ```
@@ -100,20 +110,55 @@ Alternar com os botões no canto superior direito.
 
 ---
 
-## Simulação temporal (Fase 5 — Corte EDM)
+## Construtor de cenários (qualquer combinação, sem tempo real)
 
-1. Executar cenário **5 — Corte de Energia**
-2. A barra de controlo temporal aparece na interface
-3. Clicar **Play** e selecionar velocidade (1×, 5×, 10×, 24×)
-4. As baterias drenam em tempo real; os indicadores atualizam automaticamente
+O painel **Construir cenário** (à esquerda) permite combinar livremente:
+
+- Rede: PtP, 4G/5G local, 4G/5G externo, ISP/fibra, satélite
+- Energia: EDM e solar em cada local
+- Condições: atenuação extra (dB), **tempo sem EDM** (0–120 h) e sol disponível (%)
+
+Cada alteração é simulada de imediato via `POST /api/simulation/run` (sem estado: o mesmo
+input dá sempre o mesmo resultado). O tempo não corre como relógio — salta-se directamente
+para qualquer hora após o corte (botões 0/24/48/72/96/120 h). As baterias são calculadas
+a partir de cheias, com perfil solar diário (PVGIS Maputo, 4,36 kWh/kWp/dia; corte às 18h).
+Os 9 cenários predefinidos preenchem o construtor e podem depois ser alterados.
+
+### Linha temporal
+
+No separador **Linha temporal** define-se uma sequência de eventos (ex.: 6 h — PtP em falha,
+10 h — EDM Guaxene em falha, 100 h — EDM restaurada). `POST /api/simulation/timeline` calcula
+todo o percurso de uma vez (baterias com descarga, solar e recarga a C/10 quando a EDM volta).
+A barra inferior mostra o estado em cada hora; pode-se arrastar o cursor, recuar ou reproduzir
+(1×/4×/10×) — a reprodução apenas percorre resultados já calculados.
 
 ---
 
-## Visualização 3D (toggle 2D/3D)
+## Animações do estado da máquina
+
+- **Diagrama de estados** (topo): NORMAL → DEGRADADO → EMERGÊNCIA → CRÍTICO → FALHA; o estado
+  actual pulsa e um marcador viaja até ao novo estado, com a causa da transição.
+- **Esquema** (vista por omissão): pacotes circulam só nos caminhos em uso (PtP, 4G/5G, ISP,
+  satélite — este mais lento, pela latência); componentes em falha a vermelho com ✕; edifícios
+  apagam-se sem energia; bateria a esvaziar; sol a carregar; chuva com atenuação extra;
+  alerta "Guaxene isolada".
+- **Escada de modulação** (painel direito): degrau aceso = modulação em uso; capacidade em
+  contagem animada com o limiar de 15 Mbps.
+- **Gráfico das baterias**: carga útil ao longo do corte, requisito de 72 h e instante actual
+  (clicar no gráfico salta para essa hora).
+- **Mapa 2D**: tracejado a correr no caminho activo e BTS 4G/5G; borda a pulsar em CRÍTICO/FALHA.
+
+---
+
+## Visualização 3D (toggle Esquema/2D/3D)
 
 Clicar no botão **3D** no canto superior do mapa.  
-A vista 3D utiliza CesiumJS com terreno elipsoide (funciona offline — não requer token Ion).  
-Mostra: marcadores HCM/EPC, linha LOS colorida pelo estado, perfil de terreno, zona de Fresnel.
+A vista 3D utiliza CesiumJS com terreno elipsoide (não requer token Ion); a base é OpenStreetMap
+quando há Internet, com NaturalEarth como recurso offline.  
+Mostra: marcadores HCM/EPC (sem energia ficam cinzentos), enlace com pacotes animados, BTS 4G/5G,
+satélite, perfil de terreno e a 1.ª zona de Fresnel como elipsóide orientado ao longo do enlace.
+**Exagero vertical** ×1/×5/×10 (só visual — os cálculos usam a geometria real) e botão
+**Voar pelo enlace** (automático ao abrir no modo Apresentação).
 
 > **Nota:** A visualização 3D requer browser moderno com suporte WebGL.
 
@@ -123,7 +168,7 @@ Mostra: marcadores HCM/EPC, linha LOS colorida pelo estado, perfil de terreno, z
 
 ```bash
 cd backend
-python -m pytest tests/ -v
+venv\Scripts\python -m pytest tests/ -v
 ```
 
 Resultado esperado: **44/44 testes aprovados**.

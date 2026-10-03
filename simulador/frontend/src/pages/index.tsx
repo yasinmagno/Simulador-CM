@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import clsx from 'clsx';
 import { useSimulation } from '@/store/simulation';
@@ -9,10 +9,20 @@ import { ControlPanel } from '@/components/ControlPanel';
 import { EnlaceProfile } from '@/components/EnlaceProfile';
 import { EventLog } from '@/components/EventLog';
 import { CalculationModal } from '@/components/CalculationModal'
-import { TimeControl } from '@/components/TimeControl';
+import { ScenarioBuilder } from '@/components/ScenarioBuilder';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { StateMachineDiagram } from '@/components/StateMachineDiagram';
+import { EnergyChart } from '@/components/EnergyChart';
+import { TimelineBar } from '@/components/Timeline';
+
+type BottomTab = 'perfil' | 'energia' | 'eventos';
+const TABS: [BottomTab, string][] = [['perfil', 'Perfil do enlace'], ['energia', 'Energia'], ['eventos', 'Eventos']];
 
 export default function Home() {
-  const { reset, result, error, mode } = useSimulation();
+  const { reset, result, error, mode, simMode } = useSimulation();
+  const [builderOpen, setBuilderOpen] = useState(true);
+  const [tab, setTab] = useState<BottomTab>('perfil');
+  const semEdm = result ? !result.input.edm_hcm || !result.input.edm_guaxene : false;
 
   /* Carregar estado inicial ao abrir a aplicação */
   useEffect(() => { reset(); }, []);
@@ -41,21 +51,56 @@ export default function Home() {
 
         {/* ── Área principal ── */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Coluna esquerda: Mapa + perfil + eventos */}
+          {/* Construtor de cenários — qualquer combinação de falhas, sem tempo real */}
+          {builderOpen && (
+            <div className="w-60 flex-shrink-0 border-r border-gray-200">
+              <ScenarioBuilder />
+            </div>
+          )}
+          <button
+            onClick={() => setBuilderOpen((o) => !o)}
+            className="flex-shrink-0 w-5 flex items-start justify-center pt-2 bg-gray-50 border-r border-gray-200 text-gray-400 hover:text-blue-600"
+            title={builderOpen ? 'Esconder construtor' : 'Construir cenário'}
+          >
+            {builderOpen ? <PanelLeftClose className="w-3.5 h-3.5" /> : <PanelLeftOpen className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Coluna central: máquina de estados + mapa + painéis inferiores */}
           <div className="flex flex-col flex-1 min-w-0">
-            {/* Mapa — elemento dominante */}
-            <div className={clsx('flex-1 min-h-0', isPresentacao ? 'h-full' : '')}>
+            {result && <StateMachineDiagram />}
+
+            {/* Mapa / esquema — elemento dominante */}
+            <div className={clsx('flex-1 min-h-0 relative overflow-hidden', isPresentacao ? 'h-full' : '')}>
               <MapView />
             </div>
 
-            {/* Perfil do enlace — oculto no modo apresentação */}
-            {!isPresentacao && result && (
-              <EnlaceProfile />
+            {/* Apresentação: gráfico das baterias só quando há corte de EDM */}
+            {isPresentacao && result && semEdm && (
+              <div className="relative z-10 bg-white border-t border-gray-200"><EnergyChart altura={110} /></div>
             )}
 
-            {/* Registo de eventos — oculto no modo apresentação */}
+            {/* Engenharia: separadores Perfil / Energia / Eventos */}
             {!isPresentacao && result && (
-              <EventLog />
+              <div className="relative z-10 bg-white border-t border-gray-200">
+                <div className="flex gap-1 px-3 pt-1.5 border-b border-gray-100">
+                  {TABS.map(([k, label]) => (
+                    <button
+                      key={k}
+                      onClick={() => setTab(k)}
+                      className={clsx(
+                        'text-[11px] px-2.5 py-1 rounded-t border-b-2 -mb-px transition-colors',
+                        tab === k ? 'border-blue-600 text-blue-700 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'
+                      )}
+                    >
+                      {label}
+                      {k === 'eventos' && <span className="ml-1 text-gray-400">({result.eventos.length})</span>}
+                    </button>
+                  ))}
+                </div>
+                {tab === 'perfil' && <EnlaceProfile />}
+                {tab === 'energia' && <EnergyChart />}
+                {tab === 'eventos' && <EventLog />}
+              </div>
             )}
           </div>
 
@@ -68,11 +113,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── Controlo temporal (só visível com EDM cortada) ── */}
-        <TimeControl />
-
-        {/* ── Barra de controlo ── */}
-        <ControlPanel />
+        {/* ── Barra da linha temporal (modo sequência) ou de cenários ── */}
+        {simMode === 'linha' ? <TimelineBar /> : <ControlPanel />}
       </div>
 
       {/* Modal "Ver Cálculo" */}

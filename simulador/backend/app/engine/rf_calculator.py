@@ -192,6 +192,12 @@ def autonomy_hours(
     return (bateria_wh * dod * eficiencia) / carga_w
 
 
+def battery_floor_wh(bateria_max_wh: float, dod: float) -> float:
+    """Energia mínima na bateria: E_max × (1 − DoD), arredondada para evitar
+    erros de vírgula flutuante (12000 × 0.2 = 2399.9999…)."""
+    return round(bateria_max_wh * (1 - dod), 6)
+
+
 def update_battery(
     bateria_wh: float,
     carga_w: float,
@@ -207,8 +213,140 @@ def update_battery(
     """
     consumo = (carga_w - solar_w) * delta_h
     nova = bateria_wh - consumo
-    minimo = bateria_max_wh * (1 - dod)
+    minimo = battery_floor_wh(bateria_max_wh, dod)
     return max(nova, minimo)
+
+
+def remaining_autonomy_h(
+    bateria_wh: float,
+    bateria_max_wh: float,
+    dod: float,
+    eficiencia: float,
+    carga_w: float,
+) -> float:
+    """Autonomia restante sem sol: (E_bat - E_min) × η / P_carga.
+
+    Com a bateria cheia coincide com autonomy_hours (E_max × DoD × η / P).
+    """
+    if carga_w <= 0:
+        return float("inf")
+    minimo = battery_floor_wh(bateria_max_wh, dod)
+    return max(bateria_wh - minimo, 0.0) * eficiencia / carga_w
+
+
+def solar_power_w(
+    potencia_wp: float,
+    hora_do_dia: float,
+    rendimento_kwh_kwp_dia: float,
+    fator_meteo: float = 1.0,
+) -> float:
+    """Potência solar instantânea (W) com perfil diário sinusoidal (06h–18h).
+
+    O pico é escalado para que a energia diária seja
+    potencia_wp × rendimento_kwh_kwp_dia (já inclui perdas do sistema).
+    Integral de sin em 12 h = 24/π h.
+    fator_meteo: 1 = céu limpo médio, ~0.2 = tempestade.
+    """
+    h = hora_do_dia % 24
+    if h <= 6 or h >= 18:
+        return 0.0
+    pico_w = potencia_wp * rendimento_kwh_kwp_dia / (24 / 3.141592653589793)
+    return pico_w * sin(3.141592653589793 * (h - 6) / 12) * fator_meteo
+
+
+def battery_after_outage(
+    horas: float,
+    bateria_max_wh: float,
+    dod: float,
+    eficiencia: float,
+    carga_w: float,
+    solar_wp: float = 0.0,
+    rendimento_kwh_kwp_dia: float = 0.0,
+    fator_meteo: float = 1.0,
+    hora_inicio: float = 18.0,
+    passo_h: float = 0.1,
+) -> tuple[float, float | None]:
+    """Nível da bateria após `horas` sem EDM, partindo de bateria cheia.
+
+    Cálculo directo (não depende de chamadas anteriores): integra em passos
+    de passo_h. A carga é servida primeiro pelo solar; o défice sai da
+    bateria (÷η) e o excedente carrega-a (×η), entre E_min e E_max.
+
+    Retorna (bateria_wh, hora_em_que_esgotou ou None).
+    """
+    serie, esgotou_em = battery_series(
+        horas, bateria_max_wh, dod, eficiencia, carga_w,
+        solar_wp, rendimento_kwh_kwp_dia, fator_meteo, hora_inicio, passo_h,
+        amostra_h=None,
+    )
+    return serie[-1]["bateria_wh"], esgotou_em
+
+
+def battery_step(
+    bateria_wh: float,
+    dt_h: float,
+    bateria_max_wh: float,
+    minimo_wh: float,
+    eficiencia: float,
+    carga_w: float,
+    solar_w: float = 0.0,
+    rede_w: float = 0.0,
+) -> float:
+    """Um passo do balanço energético da bateria.
+
+    Com EDM (rede_w > 0) a rede alimenta a carga e recarrega a bateria a rede_w.
+    Sem EDM a carga é servida primeiro pelo solar; o défice sai da bateria (÷η)
+    e o excedente carrega-a (×η), sempre entre E_min e E_max.
+    """
+    if rede_w > 0:
+        return min(bateria_wh + rede_w * dt_h * eficiencia, bateria_max_wh)
+    if solar_w >= carga_w:
+        return min(bateria_wh + (solar_w - carga_w) * dt_h * eficiencia, bateria_max_wh)
+    return max(bateria_wh - (carga_w - solar_w) * dt_h / eficiencia, minimo_wh)
+
+
+def battery_series(
+    horas: float,
+    bateria_max_wh: float,
+    dod: float,
+    eficiencia: float,
+    carga_w: float,
+    solar_wp: float = 0.0,
+    rendimento_kwh_kwp_dia: float = 0.0,
+    fator_meteo: float = 1.0,
+    hora_inicio: float = 18.0,
+    passo_h: float = 0.1,
+    amostra_h: float | None = 1.0,
+) -> tuple[list[dict], float | None]:
+    """Evolução da bateria sem EDM, de 0 a `horas`, partindo de cheia.
+
+    Retorna ([{tempo_h, bateria_wh, solar_w}, ...], hora_em_que_esgotou ou None).
+    Com amostra_h=None devolve apenas o ponto final.
+    """
+    minimo = battery_floor_wh(bateria_max_wh, dod)
+    bateria = bateria_max_wh
+    esgotou_em: float | None = None
+
+    def solar_em(t: float) -> float:
+        if not solar_wp:
+            return 0.0
+        return solar_power_w(solar_wp, hora_inicio + t, rendimento_kwh_kwp_dia, fator_meteo)
+
+    serie = [{"tempo_h": 0.0, "bateria_wh": bateria, "solar_w": round(solar_em(0.0), 1)}] if amostra_h else []
+    proxima_amostra = amostra_h or 0.0
+    t = 0.0
+    while t < horas - 1e-9:
+        dt = min(passo_h, horas - t)
+        bateria = battery_step(bateria, dt, bateria_max_wh, minimo, eficiencia, carga_w, solar_em(t))
+        t += dt
+        if bateria <= minimo and esgotou_em is None:
+            esgotou_em = t
+        if amostra_h and t >= proxima_amostra - 1e-9:
+            serie.append({"tempo_h": round(t, 2), "bateria_wh": round(bateria, 1), "solar_w": round(solar_em(t), 1)})
+            proxima_amostra += amostra_h
+    if not amostra_h:
+        serie.append({"tempo_h": round(t, 2), "bateria_wh": bateria, "solar_w": round(solar_em(t), 1)})
+    return serie, esgotou_em
 
 
 # ---------------------------------------------------------------------------

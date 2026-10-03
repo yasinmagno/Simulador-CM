@@ -75,7 +75,14 @@
       "solar_wp_min": 300,
       "solar_wp_max": 400,
       "autonomia_minima_h": 72
-    }
+    },
+    "solar_rendimento_kwh_kwp_dia": 4.36,
+    "solar_rendimento_fonte": "PVGIS (JRC), Maputo -25.97/32.57: 1590 kWh/kWp/ano, inclinacao 29 graus N. Ja inclui perdas do sistema.",
+    "solar_nota": "Simulacao usa solar_wp_min (conservador) e perfil diario sinusoidal 06h-18h.",
+    "hora_inicio_corte": 18,
+    "hora_inicio_corte_nota": "Hora do dia em que a EDM cai (18h = pior caso: comeca pela noite).",
+    "recarga_rede_c_rate": 0.1,
+    "recarga_rede_nota": "Na linha temporal, com EDM restaurada a bateria recarrega a C/10 (10% da capacidade por hora)."
   },
   "terrain": {
     "fonte": "ilustrativo — substituir por perfil SRTM/Copernicus ao longo do percurso",

@@ -58,6 +58,8 @@ class SimulationInput(BaseModel):
     solar_guaxene_ativo: bool = False
     l_ambiente_db: float = 0.0
     tempo_simulado_h: float = 0.0
+    # Condição meteorológica para o solar: 1 = céu limpo médio, ~0.2 = tempestade
+    fator_solar: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class LinkBudgetResult(BaseModel):
@@ -105,6 +107,9 @@ class EnergyState(BaseModel):
     guaxene_autonomia_h: float
     guaxene_com_energia: bool
     energia_nominal: bool
+    # Hora (desde o corte da EDM) em que a bateria atingiu o mínimo; None = não esgotou
+    hcm_esgotou_h: Optional[float] = None
+    guaxene_esgotou_h: Optional[float] = None
 
 
 class NetworkState(BaseModel):
@@ -122,6 +127,15 @@ class SimulationEvent(BaseModel):
     componente: Optional[str] = None
 
 
+class EnergyPoint(BaseModel):
+    """Ponto da curva de bateria após o corte da EDM (para o gráfico de energia)."""
+    tempo_h: float
+    hcm_bateria_wh: float
+    guaxene_bateria_wh: float
+    hcm_solar_w: float
+    guaxene_solar_w: float
+
+
 class SimulationResult(BaseModel):
     input: SimulationInput
     link_budget: LinkBudgetResult
@@ -129,6 +143,45 @@ class SimulationResult(BaseModel):
     energy: EnergyState
     network: NetworkState
     eventos: list[SimulationEvent]
+    energia_serie: list[EnergyPoint] = []
+
+
+# ---------------------------------------------------------------------------
+# Linha temporal de eventos
+# ---------------------------------------------------------------------------
+
+TIMELINE_CAMPOS = {
+    "ptp_ativo", "g4_local_disponivel", "g4_externo_disponivel", "isp_ativo",
+    "satelite_ativo", "edm_hcm", "edm_guaxene", "solar_hcm_ativo",
+    "solar_guaxene_ativo", "l_ambiente_db", "fator_solar",
+}
+
+
+class TimelineChange(BaseModel):
+    """Alteração aplicada num instante, ex.: {tempo_h: 6, alteracoes: {ptp_ativo: false}}."""
+    tempo_h: float = Field(ge=0)
+    alteracoes: dict[str, bool | float]
+
+
+class TimelineRequest(BaseModel):
+    base: SimulationInput = SimulationInput()
+    eventos: list[TimelineChange] = []
+    duracao_h: float = Field(default=120.0, gt=0, le=240)
+    passo_h: float = Field(default=1.0, gt=0, le=24)
+
+
+class TimelineFrame(BaseModel):
+    tempo_h: float
+    input: SimulationInput
+    link_budget: LinkBudgetResult
+    energy: EnergyState
+    network: NetworkState
+    eventos: list[SimulationEvent]  # eventos ocorridos neste passo
+
+
+class TimelineResult(BaseModel):
+    fresnel: FresnelResult
+    frames: list[TimelineFrame]
 
 
 class ScenarioDefinition(BaseModel):

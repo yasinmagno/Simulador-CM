@@ -7,7 +7,7 @@ const SCENARIOS = [
   { id: 2, label: '2 — Falha do PtP',            desc: 'Enlace PtP inoperacional. Tráfego local comuta para rede 4G/5G.' },
   { id: 3, label: '3 — Falha da Rede Móvel',     desc: 'Rede 4G/5G local indisponível. PtP é o único caminho local.' },
   { id: 4, label: '4 — Falha da Internet Externa',desc: 'ISP e 4G externo cortados. PtP local opera; satélite é contingência externa.' },
-  { id: 5, label: '5 — Corte de Energia (EDM)',  desc: 'EDM cortada nos dois locais. Equipamentos funcionam a bateria (autonomia 86,4 h).' },
+  { id: 5, label: '5 — Corte de Energia (EDM)',  desc: 'EDM cortada nos dois locais. Equipamentos funcionam a bateria (autonomia 86,4 h). Use "Tempo sem EDM" para avançar as horas.' },
   { id: 6, label: '6 — Chuva Intensa',           desc: 'Atenuação por chuva de 2,5 dB adicional. Enlace mantém-se com modulação adaptativa.' },
   { id: 7, label: '7 — Degradação RF',           desc: 'Perturbação RF grave (+10 dB). Modulação regride a 256-QAM para manter o enlace.' },
   { id: 8, label: '8 — Situação Crítica',        desc: 'PtP inoperacional e 4G/5G indisponível. Sem caminho local — estado CRÍTICO.' },
@@ -15,7 +15,7 @@ const SCENARIOS = [
 ];
 
 export function ControlPanel() {
-  const { selectedScenario, setSelectedScenario, runScenario, reset, loading, mode } = useSimulation();
+  const { selectedScenario, setSelectedScenario, runScenario, reset, loading, mode, custom } = useSimulation();
   const isPresentacao = mode === 'apresentacao';
 
   const goNext = () => {
@@ -37,10 +37,19 @@ export function ControlPanel() {
         {/* Descrição do cenário */}
         <div className="px-4 pt-2 pb-1">
           <p className="text-xs text-gray-600 leading-snug">
-            <span className="font-semibold text-blue-700">
-              {SCENARIOS.find((s) => s.id === selectedScenario)?.label}:
-            </span>{' '}
-            {currentDesc}
+            {custom ? (
+              <>
+                <span className="font-semibold text-purple-700">Cenário personalizado:</span>{' '}
+                combinação definida no painel "Construir cenário". Escolha um predefinido para voltar à sequência.
+              </>
+            ) : (
+              <>
+                <span className="font-semibold text-blue-700">
+                  {SCENARIOS.find((s) => s.id === selectedScenario)?.label}:
+                </span>{' '}
+                {currentDesc}
+              </>
+            )}
           </p>
         </div>
 

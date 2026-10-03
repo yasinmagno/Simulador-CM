@@ -21,14 +21,15 @@ export function EventLog() {
           )}
         </h3>
       </div>
-      <div className="overflow-y-auto flex-1 max-h-28">
+      <div className="overflow-y-auto flex-1 max-h-36">
         {eventos.length === 0 ? (
           <p className="px-4 py-3 text-xs text-gray-400">Sem eventos. Execute um cenário.</p>
         ) : (
           <table className="w-full text-xs">
             <tbody>
               {[...eventos].reverse().map((ev, i) => (
-                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                <tr key={`${eventos.length - i}-${ev.mensagem}`}
+                  className={clsx('border-b border-gray-50 hover:bg-gray-50', i === 0 && 'fade-slide-in')}>
                   <td className="px-3 py-1 text-gray-400 whitespace-nowrap w-16">
                     t={ev.tempo_h.toFixed(1)}h
                   </td>

@@ -46,3 +46,98 @@ html, body {
   background: inherit;
   animation: pulse-ring 1.5s ease-out infinite;
 }
+
+/* ───────────── Animações da máquina de estados ───────────── */
+
+/* Estado actual a pulsar no diagrama de estados */
+@keyframes state-ping {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.state-ping { animation: state-ping 1.6s ease-out infinite; }
+
+/* Texto que entra (causa da transição, novos eventos) */
+@keyframes fade-slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-slide-in { animation: fade-slide-in 450ms ease-out both; }
+
+/* Linhas activas: tracejado a correr (Leaflet e esquema) */
+@keyframes link-flow { to { stroke-dashoffset: -24; } }
+.link-flow { stroke-dasharray: 12 12; animation: link-flow 0.8s linear infinite; }
+.leaflet-link-ativo { animation: link-flow 0.8s linear infinite; }
+
+/* Ondas de sinal nas antenas */
+@keyframes onda {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 1; }
+}
+.onda { animation: onda 1.2s ease-in-out infinite; }
+
+/* Chuva */
+@keyframes gota {
+  from { transform: translateY(-40px); opacity: 0; }
+  30%  { opacity: 1; }
+  to   { transform: translateY(260px); opacity: 0; }
+}
+.gota { animation: gota 0.9s linear infinite; }
+
+/* Sol a rodar quando está a carregar a bateria */
+@keyframes rodar { to { transform: rotate(360deg); } }
+.sol-rodar { animation: rodar 8s linear infinite; }
+
+/* Satélite em órbita (oscila ligeiramente) */
+@keyframes flutuar {
+  0%, 100% { transform: translate(500px, 78px); }
+  50%      { transform: translate(500px, 70px); }
+}
+.sat-flutuar { animation: flutuar 3s ease-in-out infinite; }
+
+/* Bateria em descarga */
+@keyframes descarga {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+.bateria-descarga { animation: descarga 1.4s ease-in-out infinite; }
+
+/* Edifício sem energia */
+.apagado { filter: grayscale(0.85) brightness(0.8); transition: filter 600ms; }
+
+/* Alertas a piscar */
+@keyframes piscar {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+.alerta-piscar { animation: piscar 1s ease-in-out infinite; }
+
+/* Borda do ecrã a pulsar em CRÍTICO / FALHA */
+@keyframes borda-critica {
+  0%, 100% { box-shadow: inset 0 0 0 3px rgba(239, 68, 68, 0.9), inset 0 0 30px rgba(239, 68, 68, 0.35); }
+  50%      { box-shadow: inset 0 0 0 3px rgba(239, 68, 68, 0.2), inset 0 0 10px rgba(239, 68, 68, 0.05); }
+}
+.borda-critica { animation: borda-critica 1.4s ease-in-out infinite; }
+
+/* Chuva sobre o mapa (overlay) */
+@keyframes chuva-mapa { to { background-position: -40px 400px; } }
+.chuva-overlay {
+  background-image: repeating-linear-gradient(105deg, rgba(59,130,246,0.35) 0 1px, transparent 1px 14px);
+  background-size: 200px 200px;
+  animation: chuva-mapa 0.6s linear infinite;
+}
+
+/* Marcador BTS no Leaflet */
+.marker-bts {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  background: #475569; color: white; font-size: 9px; font-weight: 700;
+  border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.marker-bts.falha { background: #ef4444; }
+
+@media (prefers-reduced-motion: reduce) {
+  .state-ping, .link-flow, .leaflet-link-ativo, .onda, .gota, .sol-rodar, .sat-flutuar,
+  .bateria-descarga, .alerta-piscar, .borda-critica, .chuva-overlay, .fade-slide-in {
+    animation: none !important;
+  }
+}

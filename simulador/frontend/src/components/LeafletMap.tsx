@@ -2,18 +2,13 @@ import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 // LeafletMap type not used at runtime — removed to avoid name conflict
 import { useSimulation } from '@/store/simulation';
+import { STATE_HEX as STATE_COLOR } from '@/lib/estado';
 
 const HCM_POS:    [number, number] = [-25.96897, 32.58889];
 const GUAXENE_POS:[number, number] = [-25.98556, 32.55694];
 const CENTER:     [number, number] = [-25.977, 32.573];
 
-const STATE_COLOR: Record<string, string> = {
-  'NORMAL':     '#22c55e',
-  'DEGRADADO':  '#eab308',
-  'EMERGÊNCIA': '#f97316',
-  'CRÍTICO':    '#ef4444',
-  'FALHA':      '#991b1b',
-};
+const BTS_POS:    [number, number] = [-25.99, 32.573];
 
 /* Camada de overlays imperativa — sem hooks de ciclo de vida extra */
 function MapOverlays() {
@@ -60,13 +55,14 @@ function MapOverlays() {
       .bindPopup('<b>EPC Guaxene — KaTembe</b><br>Lat: -25.98556 | Lon: 32.55694')
       .addTo(lg);
 
-    // — Enlace PtP —
+    // — Enlace PtP (tracejado a correr quando é o caminho em uso) —
     if (ptpAtivo) {
       L.polyline([HCM_POS, GUAXENE_POS], {
         color: cor,
-        weight: caminho === 'PtP' ? 4 : 2,
-        opacity: caminho === 'PtP' ? 0.9 : 0.4,
-        dashArray: caminho === 'PtP' ? undefined : '6 4',
+        weight: caminho === 'PtP' ? 5 : 2,
+        opacity: caminho === 'PtP' ? 0.95 : 0.4,
+        dashArray: caminho === 'PtP' ? '12 12' : '6 4',
+        className: caminho === 'PtP' ? 'leaflet-link-ativo' : undefined,
       })
         .bindTooltip(`PtP — ${estado}${caminho === 'PtP' ? ' (ativo)' : ''}`, { sticky: true })
         .addTo(lg);
@@ -80,16 +76,27 @@ function MapOverlays() {
     // — Caminho 4G/5G (linha auxiliar ligeiramente curvada visualmente) —
     if (g4Ativo) {
       // ponto intermédio desviado para sul para criar aparência de caminho diferente
-      const mid: [number, number] = [-25.99, 32.573];
-      L.polyline([HCM_POS, mid, GUAXENE_POS], {
+      L.polyline([HCM_POS, BTS_POS, GUAXENE_POS], {
         color: caminho === '4G/5G' ? cor : '#6b7280',
-        weight: caminho === '4G/5G' ? 3 : 1.5,
-        opacity: caminho === '4G/5G' ? 0.85 : 0.3,
-        dashArray: '8 5',
+        weight: caminho === '4G/5G' ? 4 : 1.5,
+        opacity: caminho === '4G/5G' ? 0.9 : 0.3,
+        dashArray: caminho === '4G/5G' ? '12 12' : '8 5',
+        className: caminho === '4G/5G' ? 'leaflet-link-ativo' : undefined,
       })
         .bindTooltip(`4G/5G${caminho === '4G/5G' ? ' (ativo)' : ''}`, { sticky: true })
         .addTo(lg);
     }
+
+    // — Estação-base 4G/5G (ilustrativa) —
+    const btsOk = g4Ativo || (result?.input?.g4_externo_disponivel ?? true);
+    L.marker(BTS_POS, {
+      icon: L.divIcon({
+        className: '',
+        html: `<div class="marker-bts${btsOk ? '' : ' falha'}" title="BTS 4G/5G">${btsOk ? '4G' : '✕'}</div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13],
+      }),
+    }).bindTooltip(`BTS 4G/5G (posição ilustrativa) — ${btsOk ? 'operacional' : 'em falha'}`).addTo(lg);
 
     // — Legenda simples —
     const legend = L.control({ position: 'bottomleft' });

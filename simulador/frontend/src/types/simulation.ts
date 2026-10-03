@@ -12,6 +12,8 @@ export interface SimulationInput {
   solar_guaxene_ativo: boolean;
   l_ambiente_db: number;
   tempo_simulado_h: number;
+  /** Condição meteorológica para o solar: 1 = céu limpo, ~0.2 = tempestade */
+  fator_solar: number;
 }
 
 export interface LinkBudgetResult {
@@ -59,6 +61,9 @@ export interface EnergyState {
   guaxene_autonomia_h: number;
   guaxene_com_energia: boolean;
   energia_nominal: boolean;
+  /** Hora (desde o corte da EDM) em que a bateria atingiu o mínimo */
+  hcm_esgotou_h: number | null;
+  guaxene_esgotou_h: number | null;
 }
 
 export interface NetworkState {
@@ -83,6 +88,43 @@ export interface SimulationResult {
   energy: EnergyState;
   network: NetworkState;
   eventos: SimulationEvent[];
+  energia_serie: EnergyPoint[];
 }
 
 export type AppMode = 'apresentacao' | 'engenharia';
+
+export interface EnergyPoint {
+  tempo_h: number;
+  hcm_bateria_wh: number;
+  guaxene_bateria_wh: number;
+  hcm_solar_w: number;
+  guaxene_solar_w: number;
+}
+
+/* ── Linha temporal ── */
+
+export type TimelineField =
+  | 'ptp_ativo' | 'g4_local_disponivel' | 'g4_externo_disponivel' | 'isp_ativo'
+  | 'satelite_ativo' | 'edm_hcm' | 'edm_guaxene' | 'solar_hcm_ativo'
+  | 'solar_guaxene_ativo' | 'l_ambiente_db' | 'fator_solar';
+
+export interface TimelineChange {
+  tempo_h: number;
+  alteracoes: Partial<Record<TimelineField, boolean | number>>;
+}
+
+export interface TimelineFrame {
+  tempo_h: number;
+  input: SimulationInput;
+  link_budget: LinkBudgetResult;
+  energy: EnergyState;
+  network: NetworkState;
+  eventos: SimulationEvent[];
+}
+
+export interface TimelineResult {
+  fresnel: FresnelResult;
+  frames: TimelineFrame[];
+}
+
+export type SimMode = 'instantaneo' | 'linha';

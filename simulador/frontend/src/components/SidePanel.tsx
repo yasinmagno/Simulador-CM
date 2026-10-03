@@ -1,14 +1,8 @@
 import clsx from 'clsx';
 import { useSimulation } from '@/store/simulation';
-import { Info, Zap, Radio, Wifi, Satellite, Battery } from 'lucide-react';
-
-const STATE_HEX: Record<string, string> = {
-  'NORMAL':     '#22c55e',
-  'DEGRADADO':  '#eab308',
-  'EMERGÊNCIA': '#f97316',
-  'CRÍTICO':    '#ef4444',
-  'FALHA':      '#991b1b',
-};
+import { Info } from 'lucide-react';
+import { STATE_HEX } from '@/lib/estado';
+import { ModulationLadder } from '@/components/ModulationLadder';
 
 function Row({ label, value, unit, ok, onInfo }: {
   label: string; value: string | number; unit?: string;
@@ -49,6 +43,8 @@ export function SidePanel() {
   const { network, link_budget: lb, energy, fresnel } = result;
   const estado = network.estado;
   const cor = STATE_HEX[estado] ?? '#6b7280';
+  // Valores de link budget são teóricos; só há modulação/capacidade com o rádio ligado e alimentado
+  const ptpEmServico = result.input.ptp_ativo && network.hcm_com_energia && network.guaxene_com_energia;
 
   return (
     <aside className="bg-white border-l border-gray-200 overflow-y-auto">
@@ -59,7 +55,7 @@ export function SidePanel() {
           style={{ backgroundColor: cor + '18', borderLeft: `3px solid ${cor}` }}
         >
           <span className="text-xs font-bold" style={{ color: cor }}>{estado}</span>
-          <span className="text-xs text-gray-500">{new Date().toLocaleTimeString('pt-PT')}</span>
+          <span className="text-xs text-gray-500 font-mono">T+{result.input.tempo_simulado_h.toFixed(0)} h</span>
         </div>
       </div>
 
@@ -72,13 +68,23 @@ export function SidePanel() {
 
       {/* RF */}
       <div className="px-4 py-2 border-b border-gray-100">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Enlace Rádio</p>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Enlace Rádio PtP</p>
+        {!ptpEmServico ? (
+          <div className="my-1 p-2 rounded bg-red-50 border border-red-200 text-xs text-red-700">
+            {!result.input.ptp_ativo
+              ? 'Rádio PtP em falha — sem modulação nem capacidade.'
+              : 'Equipamento PtP sem energia num dos extremos.'}
+            <span className="block text-red-500 mt-0.5">
+              Tráfego local: {network.caminho_local === 'Nenhum' ? 'sem caminho' : `via ${network.caminho_local}`}
+            </span>
+          </div>
+        ) : (
+          <ModulationLadder />
+        )}
         <Row label="P recebida" value={lb.p_r_dbm.toFixed(2)} unit=" dBm"
           onInfo={() => openCalcModal('p_r')} />
         <Row label="SNR" value={lb.snr_db.toFixed(2)} unit=" dB"
           onInfo={() => openCalcModal('snr')} />
-        <Row label="Modulação" value={lb.modulacao_selecionada ?? '—'} />
-        <Row label="Capacidade" value={lb.capacidade_mbps.toFixed(2)} unit=" Mbps" ok={lb.capacidade_mbps >= 15} />
         <Row label="FSPL" value={lb.fspl_db.toFixed(2)} unit=" dB"
           onInfo={() => openCalcModal('fspl')} />
         {mode === 'engenharia' && (

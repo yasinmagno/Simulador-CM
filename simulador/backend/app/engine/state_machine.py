@@ -4,6 +4,7 @@ Estados: NORMAL → DEGRADADO → EMERGÊNCIA → CRÍTICO → FALHA
 Critérios de transição definidos no PROMPT_MESTRE.md, Parte VII §35.
 """
 
+from app.engine.rf_calculator import battery_floor_wh
 from app.models.schemas import SimulationInput, NetworkState, SimulationEvent
 
 # FM mínima para o estado NORMAL (256-QAM possível)
@@ -18,8 +19,8 @@ def compute_energy_state(
     dod: float = 0.8,
 ) -> tuple[bool, bool]:
     """Retorna (hcm_com_energia, guaxene_com_energia)."""
-    minimo_hcm = bateria_max_hcm * (1 - dod)
-    minimo_guaxene = bateria_max_guaxene * (1 - dod)
+    minimo_hcm = battery_floor_wh(bateria_max_hcm, dod)
+    minimo_guaxene = battery_floor_wh(bateria_max_guaxene, dod)
 
     hcm_energia = inp.edm_hcm or (inp.bateria_hcm_wh > minimo_hcm)
     guaxene_energia = inp.edm_guaxene or (inp.bateria_guaxene_wh > minimo_guaxene)

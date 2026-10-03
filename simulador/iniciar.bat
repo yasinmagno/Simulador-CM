@@ -10,7 +10,7 @@ echo.
 
 :: Backend
 echo  [1/2] A iniciar Backend (porta 8000)...
-start "Backend - FastAPI :8000" cmd /k "cd /d "%~dp0backend" && python -m uvicorn app.main:app --reload && pause"
+start "Backend - FastAPI :8000" cmd /k "cd /d "%~dp0backend" && venv\Scripts\python -m uvicorn app.main:app --reload && pause"
 
 :: Aguardar 3 segundos para o backend arrancar
 timeout /t 3 /nobreak >nul
