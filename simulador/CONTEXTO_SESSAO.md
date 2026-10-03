@@ -31,8 +31,10 @@ Pré-requisitos já instalados: `backend/venv` (Python 3.12), `frontend/node_mod
 
 ## Estado do repositório (git)
 
-- Branch: `main`. Há apenas um commit: `db10d17 Adiciona projecto Simulador HCM Guaxene`.
-- **Há muito trabalho por fazer commit**, vindo de sessões anteriores: 23 ficheiros modificados, com cerca de +1307/−241 linhas.
+- Branch: `main`.
+- **Commit feito:** `731858c Expande simulador: novos componentes, testes e notas de pesquisa`.
+  Inclui todas as alterações listadas abaixo e também as pastas `../reports/` e `../research_notes/`.
+- Ainda não fiz push para o `origin` (https://github.com/yasinmagno/Simulador-CM.git).
 
 **Backend modificado:**
 - `app/api/routes.py`
@@ -83,7 +85,7 @@ simulador/
 
 ## Próximos passos sugeridos
 
-- [ ] Rever as alterações pendentes e fazer **commit**. Há muito trabalho que ainda não está guardado no git.
+- [x] Fazer commit das alterações (feito: `731858c`).
 - [ ] Correr os testes do backend: `cd backend && venv\Scripts\python -m pytest tests`
-- [ ] Decidir se `../reports/` e `../research_notes/` entram no repositório.
+- [x] Incluir `../reports/` e `../research_notes/` no repositório (entraram no commit `731858c`).
 - [ ] Ponderar pôr `frontend/tsconfig.tsbuildinfo` no `.gitignore`, porque é um ficheiro gerado.
