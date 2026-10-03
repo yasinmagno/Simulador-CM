@@ -34,7 +34,7 @@ Pré-requisitos já instalados: `backend/venv` (Python 3.12), `frontend/node_mod
 - Branch: `main`.
 - **Commit feito:** `731858c Expande simulador: novos componentes, testes e notas de pesquisa`.
   Inclui todas as alterações listadas abaixo e também as pastas `../reports/` e `../research_notes/`.
-- Ainda não fiz push para o `origin` (https://github.com/yasinmagno/Simulador-CM.git).
+- Push feito para o `origin` (https://github.com/yasinmagno/Simulador-CM.git): o `main` está sincronizado.
 
 **Backend modificado:**
 - `app/api/routes.py`
