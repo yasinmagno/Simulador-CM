@@ -4,9 +4,9 @@ import { Info } from 'lucide-react';
 import { STATE_HEX } from '@/lib/estado';
 import { ModulationLadder } from '@/components/ModulationLadder';
 
-function Row({ label, value, unit, ok, onInfo }: {
+function Row({ label, value, unit, ok, onInfo, dim }: {
   label: string; value: string | number; unit?: string;
-  ok?: boolean; onInfo?: () => void;
+  ok?: boolean; onInfo?: () => void; dim?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
@@ -22,7 +22,7 @@ function Row({ label, value, unit, ok, onInfo }: {
         {ok !== undefined && (
           <span className={clsx('w-2 h-2 rounded-full', ok ? 'bg-green-500' : 'bg-red-500')} />
         )}
-        <span className="text-xs font-semibold text-gray-800">
+        <span className={clsx('text-xs font-semibold', dim ? 'text-gray-400' : 'text-gray-800')}>
           {value}{unit && <span className="text-gray-400 font-normal ml-0.5">{unit}</span>}
         </span>
       </div>
@@ -31,7 +31,7 @@ function Row({ label, value, unit, ok, onInfo }: {
 }
 
 export function SidePanel() {
-  const { result, mode, openCalcModal } = useSimulation();
+  const { result, mode, openCalcModal, openFormulas } = useSimulation();
   if (!result) {
     return (
       <aside className="bg-white border-l border-gray-200 p-4 flex items-center justify-center">
@@ -81,19 +81,26 @@ export function SidePanel() {
         ) : (
           <ModulationLadder />
         )}
-        <Row label="P recebida" value={lb.p_r_dbm.toFixed(2)} unit=" dBm"
+        {/* Sem o rádio em serviço, P_R/SNR/FM são apenas o valor teórico do dimensionamento */}
+        {!ptpEmServico && (
+          <p className="text-[10px] text-gray-400 italic mt-1">Valores teóricos (rádio fora de serviço):</p>
+        )}
+        <Row label="P recebida" value={lb.p_r_dbm.toFixed(2)} unit=" dBm" dim={!ptpEmServico}
           onInfo={() => openCalcModal('p_r')} />
-        <Row label="SNR" value={lb.snr_db.toFixed(2)} unit=" dB"
+        <Row label="SNR" value={lb.snr_db.toFixed(2)} unit=" dB" dim={!ptpEmServico}
           onInfo={() => openCalcModal('snr')} />
         <Row label="FSPL" value={lb.fspl_db.toFixed(2)} unit=" dB"
           onInfo={() => openCalcModal('fspl')} />
         {mode === 'engenharia' && (
           <>
-            <Row label="FM QPSK" value={(lb.fade_margin_db['QPSK_MIMO'] ?? 0).toFixed(2)} unit=" dB"
+            <Row label="FM QPSK" value={(lb.fade_margin_db['QPSK_MIMO'] ?? 0).toFixed(2)} unit=" dB" dim={!ptpEmServico}
               onInfo={() => openCalcModal('fm')} />
-            <Row label="FM 256-QAM" value={(lb.fade_margin_db['256QAM'] ?? 0).toFixed(2)} unit=" dB" />
-            <Row label="EIRP" value={lb.eirp_dbm.toFixed(1)} unit=" dBm" />
-            <Row label="λ" value={(lb.comprimento_onda_m * 100).toFixed(2)} unit=" cm" />
+            <Row label="FM 256-QAM" value={(lb.fade_margin_db['256QAM'] ?? 0).toFixed(2)} unit=" dB" dim={!ptpEmServico}
+              onInfo={() => openFormulas('modulacao')} />
+            <Row label="EIRP" value={lb.eirp_dbm.toFixed(1)} unit=" dBm"
+              onInfo={() => openFormulas('eirp')} />
+            <Row label="λ" value={(lb.comprimento_onda_m * 100).toFixed(2)} unit=" cm"
+              onInfo={() => openFormulas('lambda')} />
           </>
         )}
       </div>
@@ -106,7 +113,8 @@ export function SidePanel() {
         <Row label="Raio máx. (F₁)" value={lb.fresnel_max_m.toFixed(2)} unit=" m" />
         <Row label="Folga 60%" value={lb.fresnel_60pct_m.toFixed(2)} unit=" m" />
         {mode === 'engenharia' && (
-          <Row label="Curvatura" value={lb.earth_bulge_midpoint_m.toFixed(3)} unit=" m" />
+          <Row label="Curvatura" value={lb.earth_bulge_midpoint_m.toFixed(3)} unit=" m"
+            onInfo={() => openFormulas('curvatura')} />
         )}
       </div>
 

@@ -1,5 +1,5 @@
-fastapi>=0.111.0
-uvicorn[standard]>=0.29.0
-pydantic>=2.7.0
-numpy>=1.26.0
+# Testado com Python 3.11 e 3.12 (fastapi 0.142, pydantic 2.13, uvicorn 0.54, pytest 9.1)
+fastapi>=0.111.0,<1.0
+uvicorn[standard]>=0.29.0,<1.0
+pydantic>=2.7.0,<3.0
 pytest>=8.2.0

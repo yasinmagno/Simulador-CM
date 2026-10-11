@@ -22,6 +22,11 @@ export function EnlaceProfile() {
   }));
 
   const allOk = result.fresnel.todos_ok;
+  const distKm = data[data.length - 1].dist_km;
+  // Marcas a cada 0,5 km e no fim do percurso (eixo numérico, não por amostra)
+  const ticks = [...Array.from({ length: Math.floor(distKm / 0.5) + 1 }, (_, i) => i * 0.5), distKm]
+    .filter((t, i, a) => i === a.length - 1 || distKm - t > 0.15);
+  const critico = pontos.find((p) => p.distancia_m === result.fresnel.ponto_critico_distancia_m);
 
   return (
     <div className="bg-white border-t border-gray-200 px-4 py-3">
@@ -34,6 +39,10 @@ export function EnlaceProfile() {
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
             dataKey="dist_km"
+            type="number"
+            domain={[0, distKm]}
+            ticks={ticks}
+            tickFormatter={(v: number) => v.toLocaleString('pt-PT', { maximumFractionDigits: 2 })}
             tick={{ fontSize: 10 }}
             label={{ value: 'Distância (km)', position: 'insideBottomRight', offset: -4, fontSize: 10 }}
           />
@@ -76,10 +85,10 @@ export function EnlaceProfile() {
             strokeWidth={2} dot={false}
           />
           {/* Ponto crítico */}
-          {result.fresnel.ponto_critico_distancia_m !== null && (
+          {critico && (
             <ReferenceDot
-              x={+(result.fresnel.ponto_critico_distancia_m / 1000).toFixed(3)}
-              y={result.fresnel.ponto_critico_clearance_m ?? 0}
+              x={+(critico.distancia_m / 1000).toFixed(3)}
+              y={+(critico.h_terreno_m + critico.h_bulge_m).toFixed(2)}
               r={4} fill="#dc2626" stroke="white"
               label={{ value: '⚠', fontSize: 12 }}
             />

@@ -7,39 +7,55 @@ Modela o enlace PtP a 5,8 GHz entre o Hospital Central de Maputo e a EPC Guaxene
 
 ## Requisitos
 
-| Componente | Versão mínima |
-|------------|---------------|
-| Python     | 3.11          |
-| Node.js    | 18 LTS        |
-| npm        | 9+            |
+| Componente | Versão mínima | Onde obter |
+|------------|---------------|------------|
+| Python     | 3.11          | https://www.python.org (marcar **"Add python.exe to PATH"**) |
+| Node.js    | 18.17 (recomendado: LTS actual) | https://nodejs.org |
+| Git        | —             | https://git-scm.com |
+
+Os scripts `.bat` são para **Windows**. Em macOS/Linux, ver a instalação manual abaixo.
 
 ---
 
 ## Instalação
 
-### 1. Backend (FastAPI)
+### Windows — um passo (recomendado)
+
+```bat
+git clone https://github.com/yasinmagno/Simulador-CM.git
+cd Simulador-CM\simulador
+instalar.bat
+```
+
+O `instalar.bat`:
+1. verifica as versões do Node.js e do Python;
+2. cria `backend\venv` e instala as dependências Python;
+3. instala as dependências do frontend e copia o Cesium (3D) para `frontend\public\cesium`;
+4. instala os scripts de arranque da raiz;
+5. corre os testes do backend para confirmar que está tudo bem.
+
+Depois de cada `git pull` que altere dependências (`requirements.txt` ou `package.json`), voltar a correr `instalar.bat`.
+
+### Manual (qualquer sistema)
 
 ```bash
+# Backend
 cd backend
-py -3.12 -m venv venv
-venv\Scripts\python -m pip install -r requirements.txt
+python -m venv venv
+venv\Scripts\python -m pip install -r requirements.txt      # Windows
+# venv/bin/python -m pip install -r requirements.txt        # macOS/Linux
+
+# Frontend (o postinstall copia os assets do Cesium para public/cesium)
+cd ../frontend
+npm ci
+
+# Raiz (opcional — arranque com um só comando, Windows)
+cd ..
+npm ci
 ```
 
-> Os scripts de arranque (`iniciar.bat`, `npm run dev`) usam `backend\venv\Scripts\python`.
-
-### 2. Frontend (Next.js)
-
-```bash
-cd frontend
-npm install   # o postinstall copia os assets do Cesium para public/cesium
-```
-
-### 3. Raiz (opcional — arranque com um só comando)
-
-```bash
-npm install
-npm run dev   # backend + frontend em simultâneo
-```
+> Em macOS/Linux, os scripts `npm run dev`/`start` da raiz usam caminhos do Windows; arrancar o backend
+> com `venv/bin/python -m uvicorn app.main:app` e o frontend com `npm run dev` em dois terminais.
 
 ---
 
@@ -63,6 +79,17 @@ npm run dev
 ```
 
 Abrir **http://localhost:3000** no browser.
+
+### Para a apresentação/defesa (modo de produção — recomendado)
+
+Duplo clique em **`iniciar_apresentacao.bat`**, ou:
+
+```bash
+npm run apresentacao   # compila o frontend (next build) e arranca backend + frontend sem modo de desenvolvimento
+```
+
+O modo de desenvolvimento carrega ~12 MB de JavaScript só para abrir a página; o de produção
+carrega ~0,8 MB. Depois da primeira compilação basta `npm run start`.
 
 ---
 
@@ -152,7 +179,8 @@ A barra inferior mostra o estado em cada hora; pode-se arrastar o cursor, recuar
 
 ## Visualização 3D (toggle Esquema/2D/3D)
 
-Clicar no botão **3D** no canto superior do mapa.  
+Clicar no botão **3D** no canto superior do mapa. O Cesium é carregado já compilado
+(`/cesium/Cesium.js`, copiado pelo `postinstall` do frontend), não pelo webpack.  
 A vista 3D utiliza CesiumJS com terreno elipsoide (não requer token Ion); a base é OpenStreetMap
 quando há Internet, com NaturalEarth como recurso offline.  
 Mostra: marcadores HCM/EPC (sem energia ficam cinzentos), enlace com pacotes animados, BTS 4G/5G,
@@ -164,6 +192,29 @@ satélite, perfil de terreno e a 1.ª zona de Fresnel como elipsóide orientado 
 
 ---
 
+## Secção "Fórmulas"
+
+O botão **Σ Fórmulas** (cabeçalho) abre todas as equações usadas pelo motor — link budget,
+Fresnel, curvatura, energia, solar e estados — com a substituição feita com os valores do
+cenário actual. Os botões ⓘ do painel direito abrem a fórmula correspondente.
+
+---
+
+## API
+
+| Método | Rota | Função |
+|--------|------|--------|
+| GET  | `/api/config` | Parâmetros oficiais (`project_config.json`) |
+| GET  | `/api/scenarios` | Os 9 cenários predefinidos |
+| POST | `/api/scenarios/{id}/run` | Executa um cenário predefinido |
+| POST | `/api/simulation/run` | Qualquer combinação de falhas num instante após o corte (sem estado) |
+| POST | `/api/simulation/timeline` | Sequência de eventos calculada de uma vez |
+
+As respostas grandes são comprimidas (gzip). Valores fora do intervalo (ex.: atenuação negativa)
+são rejeitados com HTTP 422.
+
+---
+
 ## Testes (backend)
 
 ```bash
@@ -171,7 +222,7 @@ cd backend
 venv\Scripts\python -m pytest tests/ -v
 ```
 
-Resultado esperado: **44/44 testes aprovados**.
+Resultado esperado: **79/79 testes aprovados**.
 
 ---
 
@@ -189,7 +240,8 @@ simulador/
 │   │   ├── api/routes.py                ← endpoints REST
 │   │   ├── scenarios/cenario_0N.json    ← 9 cenários predefinidos
 │   │   └── main.py                      ← app FastAPI
-│   ├── tests/test_rf_calculator.py      ← 44 testes unitários
+│   ├── tests/test_rf_calculator.py      ← testes do motor RF
+│   ├── tests/test_simulation.py         ← simulação, linha temporal e validação
 │   └── requirements.txt
 └── frontend/
     ├── src/

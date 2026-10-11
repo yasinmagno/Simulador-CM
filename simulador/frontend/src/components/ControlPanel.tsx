@@ -54,7 +54,7 @@ export function ControlPanel() {
         </div>
 
         {/* Controlos */}
-        <div className="flex items-center gap-2 px-4 py-2">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2">
           {/* Prev / scenario select / Next */}
           <button
             onClick={goPrev}
@@ -68,7 +68,7 @@ export function ControlPanel() {
           <select
             value={selectedScenario}
             onChange={(e) => setSelectedScenario(Number(e.target.value))}
-            className="flex-1 text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 min-w-[10rem] text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             {SCENARIOS.map((s) => (
               <option key={s.id} value={s.id}>{s.label}</option>
@@ -117,13 +117,13 @@ export function ControlPanel() {
 
   // Modo engenharia — barra simples
   return (
-    <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 border-t border-gray-200">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 bg-gray-50 border-t border-gray-200">
       <span className="text-xs font-semibold text-gray-500 whitespace-nowrap">Cenário:</span>
 
       <select
         value={selectedScenario}
         onChange={(e) => setSelectedScenario(Number(e.target.value))}
-        className="flex-1 max-w-xs text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="flex-1 min-w-[10rem] max-w-xs text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
         {SCENARIOS.map((s) => (
           <option key={s.id} value={s.id}>{s.label}</option>

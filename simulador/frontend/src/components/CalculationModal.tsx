@@ -67,7 +67,7 @@ const CALCS: Record<string, CalcEntry> = {
 };
 
 export function CalculationModal() {
-  const { calcModalOpen, calcModalKey, closeCalcModal, result } = useSimulation();
+  const { calcModalOpen, calcModalKey, closeCalcModal, openFormulas, result } = useSimulation();
   if (!calcModalOpen || !calcModalKey) return null;
 
   const entry = CALCS[calcModalKey];
@@ -104,6 +104,13 @@ export function CalculationModal() {
             <p className="text-sm text-gray-600 italic">{entry.interpretacao(result)}</p>
           </div>
         </div>
+
+        <button
+          onClick={() => openFormulas(calcModalKey)}
+          className="mt-4 text-xs font-semibold text-blue-700 hover:underline"
+        >
+          Ver todas as fórmulas →
+        </button>
       </div>
     </div>
   );

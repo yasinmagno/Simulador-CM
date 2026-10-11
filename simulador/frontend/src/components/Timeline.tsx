@@ -100,9 +100,11 @@ export function TimelineEditor() {
                 <input
                   type="number" min={0} max={def.tipo === 'db' ? 40 : 100} step={def.tipo === 'db' ? 0.5 : 5}
                   value={def.tipo === 'pct' ? Math.round(Number(l.valor) * 100) : Number(l.valor)}
-                  onChange={(e) => atualizar(i, {
-                    valor: def.tipo === 'pct' ? Number(e.target.value) / 100 : Number(e.target.value),
-                  })}
+                  onChange={(e) => {
+                    // Limitar ao intervalo aceite pelo backend (atenuação 0–40 dB, sol 0–100 %)
+                    const v = Math.min(Math.max(Number(e.target.value) || 0, 0), def.tipo === 'db' ? 40 : 100);
+                    atualizar(i, { valor: def.tipo === 'pct' ? v / 100 : v });
+                  }}
                   className="w-10 text-[11px] font-mono border border-gray-200 rounded px-1 py-0.5"
                 />
               )}

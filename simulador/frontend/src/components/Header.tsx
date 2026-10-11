@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { Radio, Zap } from 'lucide-react';
+import { Radio, Sigma } from 'lucide-react';
 import { useSimulation } from '@/store/simulation';
 import type { AppMode } from '@/types/simulation';
 
@@ -12,12 +12,12 @@ const STATE_CONFIG = {
 };
 
 export function Header() {
-  const { result, mode, setMode, loading } = useSimulation();
+  const { result, mode, setMode, loading, openFormulas } = useSimulation();
   const estado = result?.network?.estado ?? 'NORMAL';
   const cfg = STATE_CONFIG[estado as keyof typeof STATE_CONFIG] ?? STATE_CONFIG['NORMAL'];
 
   return (
-    <header className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200 shadow-sm">
+    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 bg-white border-b border-gray-200 shadow-sm">
       {/* Título */}
       <div className="flex items-center gap-2">
         <Radio className="w-5 h-5 text-blue-700" />
@@ -43,6 +43,15 @@ export function Header() {
         </span>
       </div>
 
+      <div className="flex items-center gap-2">
+      {/* Secção com todas as fórmulas usadas nos cálculos */}
+      <button
+        onClick={() => openFormulas()}
+        className="flex items-center gap-1 px-3 py-1 rounded-md text-xs font-semibold border border-gray-200 text-gray-600 hover:text-blue-700 hover:border-blue-300"
+      >
+        <Sigma className="w-3.5 h-3.5" /> Fórmulas
+      </button>
+
       {/* Modo toggle */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
         {(['apresentacao', 'engenharia'] as AppMode[]).map((m) => (
@@ -59,6 +68,7 @@ export function Header() {
             {m === 'apresentacao' ? 'Apresentação' : 'Engenharia'}
           </button>
         ))}
+      </div>
       </div>
     </header>
   );

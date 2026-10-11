@@ -9,6 +9,7 @@ import { ControlPanel } from '@/components/ControlPanel';
 import { EnlaceProfile } from '@/components/EnlaceProfile';
 import { EventLog } from '@/components/EventLog';
 import { CalculationModal } from '@/components/CalculationModal'
+import { FormulasPanel } from '@/components/FormulasPanel';
 import { ScenarioBuilder } from '@/components/ScenarioBuilder';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { StateMachineDiagram } from '@/components/StateMachineDiagram';
@@ -26,6 +27,8 @@ export default function Home() {
 
   /* Carregar estado inicial ao abrir a aplicação */
   useEffect(() => { reset(); }, []);
+  /* Em ecrãs pequenos o construtor começa fechado (fica por cima do esquema) */
+  useEffect(() => { if (window.innerWidth < 1024) setBuilderOpen(false); }, []);
 
   const isPresentacao = mode === 'apresentacao';
 
@@ -35,9 +38,11 @@ export default function Home() {
         <title>Simulador HCM ↔ Guaxene</title>
         <meta name="description" content="Simulador de Comunicação Resiliente — Comunicação Móvel, ISCTEM" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </Head>
 
-      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+      {/* Ecrã grande: tudo cabe no ecrã (colunas). Ecrã pequeno: secções empilhadas com scroll. */}
+      <div className="flex flex-col min-h-screen lg:h-screen bg-gray-50 lg:overflow-hidden">
         {/* ── Cabeçalho ── */}
         <Header />
 
@@ -50,27 +55,28 @@ export default function Home() {
         )}
 
         {/* ── Área principal ── */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-col lg:flex-row lg:flex-1 lg:overflow-hidden">
           {/* Construtor de cenários — qualquer combinação de falhas, sem tempo real */}
           {builderOpen && (
-            <div className="w-60 flex-shrink-0 border-r border-gray-200">
+            <div className="w-full lg:w-60 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200 max-h-[70vh] lg:max-h-none overflow-y-auto lg:overflow-visible">
               <ScenarioBuilder />
             </div>
           )}
           <button
             onClick={() => setBuilderOpen((o) => !o)}
-            className="flex-shrink-0 w-5 flex items-start justify-center pt-2 bg-gray-50 border-r border-gray-200 text-gray-400 hover:text-blue-600"
+            className="flex-shrink-0 w-full lg:w-5 flex items-center lg:items-start justify-center gap-1.5 py-1.5 lg:py-0 lg:pt-2 bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-200 text-gray-400 hover:text-blue-600"
             title={builderOpen ? 'Esconder construtor' : 'Construir cenário'}
           >
             {builderOpen ? <PanelLeftClose className="w-3.5 h-3.5" /> : <PanelLeftOpen className="w-3.5 h-3.5" />}
+            <span className="lg:hidden text-xs">{builderOpen ? 'Esconder construtor' : 'Construir cenário'}</span>
           </button>
 
           {/* Coluna central: máquina de estados + mapa + painéis inferiores */}
-          <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-col lg:flex-1 min-w-0">
             {result && <StateMachineDiagram />}
 
             {/* Mapa / esquema — elemento dominante */}
-            <div className={clsx('flex-1 min-h-0 relative overflow-hidden', isPresentacao ? 'h-full' : '')}>
+            <div className="h-[60vh] lg:h-auto lg:flex-1 lg:min-h-0 relative overflow-hidden isolate">
               <MapView />
             </div>
 
@@ -106,19 +112,22 @@ export default function Home() {
 
           {/* Coluna direita: Painel de indicadores */}
           <div className={clsx(
-            'border-l border-gray-200 overflow-y-auto flex-shrink-0',
-            isPresentacao ? 'w-64' : 'w-72'
+            'w-full border-t lg:border-t-0 lg:border-l border-gray-200 lg:overflow-y-auto flex-shrink-0',
+            isPresentacao ? 'lg:w-64' : 'lg:w-72'
           )}>
             <SidePanel />
           </div>
         </div>
 
         {/* ── Barra da linha temporal (modo sequência) ou de cenários ── */}
-        {simMode === 'linha' ? <TimelineBar /> : <ControlPanel />}
+        <div className="sticky bottom-0 z-20 lg:static">
+          {simMode === 'linha' ? <TimelineBar /> : <ControlPanel />}
+        </div>
       </div>
 
-      {/* Modal "Ver Cálculo" */}
+      {/* Modal "Ver Cálculo" e secção com todas as fórmulas */}
       <CalculationModal />
+      <FormulasPanel />
     </>
   );
 }

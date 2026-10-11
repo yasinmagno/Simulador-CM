@@ -33,13 +33,13 @@ const MOD_LABEL: Record<string, string> = {
 };
 const MOD_ORDER = ['QPSK_MIMO', '16QAM_MIMO', '64QAM', '256QAM', '1024QAM'];
 
-type LinkStatus = 'ativo' | 'espera' | 'falha';
+type LinkStatus = 'ativo' | 'espera' | 'falha' | 'sem-energia';
 
 function Link({ id, d, status, cor, dur, pacotes, bidirecional, label, labelPos }: {
   id: string; d: string; status: LinkStatus; cor: string; dur: number; pacotes: number;
   bidirecional?: boolean; label: string; labelPos: { x: number; y: number };
 }) {
-  const stroke = status === 'ativo' ? cor : status === 'falha' ? '#ef4444' : '#cbd5e1';
+  const stroke = status === 'ativo' ? cor : status === 'falha' ? '#ef4444' : status === 'sem-energia' ? '#64748b' : '#cbd5e1';
   return (
     <g>
       <path id={id} d={d} fill="none" stroke="transparent" />
@@ -49,7 +49,7 @@ function Link({ id, d, status, cor, dur, pacotes, bidirecional, label, labelPos 
       <path
         d={d} fill="none" stroke={stroke}
         strokeWidth={status === 'ativo' ? 3 : 2}
-        strokeDasharray={status === 'falha' ? '6 6' : status === 'espera' ? '2 6' : undefined}
+        strokeDasharray={status === 'falha' || status === 'sem-energia' ? '6 6' : status === 'espera' ? '2 6' : undefined}
         className={status === 'ativo' ? 'link-flow' : undefined}
         strokeLinecap="round"
       />
@@ -72,12 +72,12 @@ function Link({ id, d, status, cor, dur, pacotes, bidirecional, label, labelPos 
       ))}
       <g transform={`translate(${labelPos.x},${labelPos.y})`}>
         <text textAnchor="middle" fontSize={13} fontWeight={600}
-          fill={status === 'ativo' ? '#1f2937' : status === 'falha' ? '#dc2626' : '#94a3b8'}>
-          {status === 'falha' ? '✕ ' : ''}{label}
+          fill={status === 'ativo' ? '#1f2937' : status === 'falha' ? '#dc2626' : status === 'sem-energia' ? '#475569' : '#94a3b8'}>
+          {status === 'falha' ? '✕ ' : status === 'sem-energia' ? '⏻ ' : ''}{label}
         </text>
         <text y={15} textAnchor="middle" fontSize={10}
-          fill={status === 'ativo' ? cor : status === 'falha' ? '#dc2626' : '#94a3b8'}>
-          {status === 'ativo' ? 'em uso' : status === 'falha' ? 'em falha' : 'em espera'}
+          fill={status === 'ativo' ? cor : status === 'falha' ? '#dc2626' : status === 'sem-energia' ? '#475569' : '#94a3b8'}>
+          {status === 'ativo' ? 'em uso' : status === 'falha' ? 'em falha' : status === 'sem-energia' ? 'sem energia' : 'em espera'}
         </text>
       </g>
     </g>
@@ -182,7 +182,11 @@ export function NetworkSchematic() {
   const local = network.caminho_local;
   const externo = network.caminho_externo;
 
-  const status = (ativo: boolean, emUso: boolean): LinkStatus => (!ativo ? 'falha' : emUso ? 'ativo' : 'espera');
+  // Uma avaria tem prioridade; depois, um caminho sem energia num dos extremos não pode estar "em espera"
+  const status = (ativo: boolean, emUso: boolean, comEnergia = true): LinkStatus =>
+    (!ativo ? 'falha' : !comEnergia ? 'sem-energia' : emUso ? 'ativo' : 'espera');
+  const ambos = network.hcm_com_energia && network.guaxene_com_energia;
+  const hcmOk = network.hcm_com_energia;
   const ptpSemSinal = inp.ptp_ativo && !lb.modulacao_selecionada;
 
   const modIdx = lb.modulacao_selecionada ? MOD_ORDER.indexOf(lb.modulacao_selecionada) : -1;
@@ -223,18 +227,18 @@ export function NetworkSchematic() {
         </g>
 
         {/* Caminhos externos (HCM → Internet) */}
-        <Link id="ns-isp" d={PATHS.isp} status={status(inp.isp_ativo, externo === 'ISP/fibra')}
+        <Link id="ns-isp" d={PATHS.isp} status={status(inp.isp_ativo, externo === 'ISP/fibra', hcmOk)}
           cor={cor} dur={1.6} pacotes={3} bidirecional label="ISP / fibra" labelPos={{ x: 80, y: 205 }} />
-        <Link id="ns-g4ext" d={PATHS.g4Ext} status={status(inp.g4_externo_disponivel, externo === '4G/5G')}
+        <Link id="ns-g4ext" d={PATHS.g4Ext} status={status(inp.g4_externo_disponivel, externo === '4G/5G', hcmOk)}
           cor={cor} dur={2.8} pacotes={3} bidirecional label="4G/5G externo" labelPos={{ x: 330, y: 300 }} />
-        <Link id="ns-sat" d={PATHS.sat} status={status(inp.satelite_ativo, externo === 'Satélite')}
+        <Link id="ns-sat" d={PATHS.sat} status={status(inp.satelite_ativo, externo === 'Satélite', hcmOk)}
           cor={cor} dur={5} pacotes={2} bidirecional label="Satélite (contingência)" labelPos={{ x: 360, y: 40 }} />
 
         {/* Caminhos locais (HCM ↔ Guaxene) */}
-        <Link id="ns-g4" d={PATHS.g4Local} status={status(inp.g4_local_disponivel, local === '4G/5G')}
+        <Link id="ns-g4" d={PATHS.g4Local} status={status(inp.g4_local_disponivel, local === '4G/5G', ambos)}
           cor={cor} dur={3} pacotes={4} bidirecional label="4G/5G local (redundância)" labelPos={{ x: 650, y: 505 }} />
         <Link id="ns-ptp" d={PATHS.ptp}
-          status={ptpSemSinal ? 'falha' : status(inp.ptp_ativo, local === 'PtP')}
+          status={ptpSemSinal ? 'falha' : status(inp.ptp_ativo, local === 'PtP', ambos)}
           cor={cor} dur={ptpDur} pacotes={Math.max(2, modIdx + 2)} bidirecional
           label={`Rádio PtP 5,8 GHz${local === 'PtP' && lb.modulacao_selecionada
             ? ` · ${MOD_LABEL[lb.modulacao_selecionada]} · ${lb.capacidade_mbps.toFixed(1)} Mbps` : ''}`}
@@ -259,7 +263,7 @@ export function NetworkSchematic() {
         <Antena x={P.antGua.x} y={P.antGua.y} base={P.gua.y + 6} ondas={ondas} cor={cor} direita={false} />
         <Edificio x={P.hcm.x} y={P.hcm.y} nome="HCM" sub="Hospital Central de Maputo"
           energia={network.hcm_com_energia} tipo="hospital" />
-        <Edificio x={P.gua.x} y={P.gua.y} nome="Guaxene" sub="Centro de acomodação · KaTembe"
+        <Edificio x={P.gua.x} y={P.gua.y} nome="Guaxene" sub="Escola Primária Completa · KaTembe"
           energia={network.guaxene_com_energia} tipo="escola" />
 
         <Energia x={60} y={470} edm={inp.edm_hcm}
@@ -270,6 +274,12 @@ export function NetworkSchematic() {
           solar={inp.solar_guaxene_ativo} solarAtivo={inp.solar_guaxene_ativo && !inp.edm_guaxene && solarComSol} />
 
         {/* Guaxene isolada */}
+        {!network.guaxene_com_energia && (
+          <g transform={`translate(${P.gua.x},${P.gua.y + 30})`} className="alerta-piscar">
+            <rect x={-70} y={-16} width={140} height={26} rx={13} fill="#991b1b" />
+            <text y={2} textAnchor="middle" fontSize={12} fontWeight={700} fill="white">GUAXENE SEM ENERGIA</text>
+          </g>
+        )}
         {local === 'Nenhum' && (
           <g transform={`translate(${P.gua.x},${P.gua.y - 120})`} className="alerta-piscar">
             <rect x={-70} y={-16} width={140} height={26} rx={13} fill="#ef4444" />
@@ -277,7 +287,7 @@ export function NetworkSchematic() {
           </g>
         )}
         {!network.hcm_com_energia && (
-          <g transform={`translate(${P.hcm.x},${P.hcm.y - 130})`} className="alerta-piscar">
+          <g transform={`translate(${P.hcm.x},${P.hcm.y + 30})`} className="alerta-piscar">
             <rect x={-60} y={-16} width={120} height={26} rx={13} fill="#991b1b" />
             <text y={2} textAnchor="middle" fontSize={12} fontWeight={700} fill="white">HCM SEM ENERGIA</text>
           </g>
@@ -289,6 +299,7 @@ export function NetworkSchematic() {
         <span className="flex items-center gap-1"><span className="w-4 h-0.5" style={{ background: cor }} /> em uso</span>
         <span className="flex items-center gap-1"><span className="w-4 border-t-2 border-dotted border-slate-300" /> em espera</span>
         <span className="flex items-center gap-1"><span className="w-4 border-t-2 border-dashed border-red-500" /> em falha</span>
+        <span className="flex items-center gap-1"><span className="w-4 border-t-2 border-dashed border-slate-500" /> sem energia</span>
       </div>
     </div>
   );

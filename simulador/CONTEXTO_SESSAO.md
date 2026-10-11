@@ -1,91 +1,66 @@
-# Contexto da sessão — 2026-10-03
+# Contexto da sessão — 2026-10-11
 
 Notas para retomar o trabalho no **Simulador de Comunicação Resiliente HCM ↔ Guaxene**
 (enlace PtP 5,8 GHz, 3,69 km — cadeira de Comunicação Móvel, ISCTEM).
 
-## O que foi feito nesta sessão
+## Instalar e arrancar (para todos os membros do grupo)
 
-1. Pus o simulador a correr com `npm run dev`, na pasta `simulador/`.
-   - O script `predev` liberta primeiro as portas 3000 e 8000.
-   - O `concurrently` arranca o backend e o frontend em simultâneo.
-2. Confirmei que os dois serviços responderam com HTTP 200:
-   - Frontend (Next.js 14.2.5): http://localhost:3000
-   - Backend (FastAPI/Uvicorn): http://127.0.0.1:8000, com a documentação em `/docs`
-3. Abri o browser em http://localhost:3000.
-4. Não alterei código nesta sessão. Apenas criei este ficheiro.
-
-> Os servidores estavam a correr em segundo plano dentro da sessão do Claude Code.
-> Ao fechar a sessão, provavelmente param. Se não pararem, o `predev` liberta as portas no próximo arranque.
-
-## Como voltar a arrancar
-
-Na pasta `simulador/`, há duas formas:
-
-```bash
-npm run dev        # backend e frontend num só terminal
+```bat
+git clone https://github.com/yasinmagno/Simulador-CM.git
+cd Simulador-CM\simulador
+instalar.bat                 :: uma vez (e depois de cada pull que mude dependências)
+iniciar_apresentacao.bat     :: defesa/apresentação — modo de produção, leve
+iniciar.bat                  :: desenvolvimento (ou: npm run dev)
 ```
 
-ou fazer duplo clique em `iniciar.bat`, que abre duas janelas e o browser.
+Requisitos: Python ≥ 3.11 e Node.js ≥ 18.17. O `instalar.bat` verifica as versões, cria
+`backend\venv`, instala tudo, copia o Cesium para `frontend\public\cesium` e corre os testes.
+Testado numa cópia limpa do projecto: instalação em ~30–45 s, 79/79 testes, 9/9 cenários no browser.
 
-Pré-requisitos já instalados: `backend/venv` (Python 3.12), `frontend/node_modules` e `node_modules` na raiz.
+## O que foi feito nesta sessão
 
-## Estado do repositório (git)
+**Correcções da interface**
+- Layout responsivo (telemóvel: secções empilhadas, sem scroll horizontal).
+- Esquema: caminhos sem energia aparecem como "sem energia"; avisos "HCM/GUAXENE SEM ENERGIA" já não tapam texto.
+- Painel direito: P_R/SNR/FM marcados como "valores teóricos" quando o rádio está fora de serviço.
+- Guaxene passa a "Escola Primária Completa · KaTembe" (antes dizia "Centro de acomodação").
+- Diagrama de estados com mais espaço; eixo do perfil de Fresnel em 0,5 km; ponto crítico ⚠ desenhado na altura certa.
 
-- Branch: `main`.
-- **Commit feito:** `731858c Expande simulador: novos componentes, testes e notas de pesquisa`.
-  Inclui todas as alterações listadas abaixo e também as pastas `../reports/` e `../research_notes/`.
-- Push feito para o `origin` (https://github.com/yasinmagno/Simulador-CM.git): o `main` está sincronizado.
+**Nova secção "Fórmulas"** (`FormulasPanel.tsx`, botão Σ no cabeçalho)
+- 18 fórmulas (rádio, Fresnel/LOS, energia, resiliência) com substituição pelos valores do cenário actual
+  e etiqueta da origem de cada valor (relatório, premissa académica, ilustrativo, física).
 
-**Backend modificado:**
-- `app/api/routes.py`
-- `app/config/project_config.json`
-- `app/engine/rf_calculator.py`
-- `app/engine/state_machine.py`
-- `app/models/schemas.py`
+**Animação 3D (`CesiumView.tsx`)**
+- Voo reescrito: a zona de Fresnel vê-se de lado, o voo pára antes de Guaxene, vista final com as duas etiquetas.
+- Sem erro 401 do Cesium Ion; atribuição do OpenStreetMap visível; terreno igual ao do `project_config.json`.
+- Só redesenha quando muda algo visível; 30 fps; corrigido o caso de dois viewers em simultâneo.
+- O Cesium é carregado já compilado (`/cesium/Cesium.js`), não pelo webpack.
 
-**Backend novo:**
-- `backend/tests/test_simulation.py`
+**Optimizações e limpeza**
+- Modo de produção para a defesa: ~0,8 MB de JS em vez de ~12 MB; 3D: ~6,4 MB em vez de ~49 MB.
+- Backend: gzip (linha temporal 154 KB → 4 KB); removidos os endpoints antigos com estado
+  (`/advance`, `/reset`, `/state`, `/calculate/*`) e `update_battery` (dava 96 h em vez de 86,4 h).
+- Validação das entradas (atenuação ≥ 0, tempo 0–240 h, passo ≥ 0,25 h; erros na linha temporal → 422).
+- Dependências: Next.js 14.2.5 → 14.2.35 (correcções de segurança), `concurrently` 9 (funciona com Node 18),
+  `numpy` retirado (não era usado). `tsconfig.tsbuildinfo` passou para o `.gitignore`.
 
-**Frontend modificado:**
-- `CalculationModal`, `CesiumView`, `ControlPanel`, `EventLog`, `LeafletMap`, `MapView` e `SidePanel`
-- `lib/api.ts`, `pages/index.tsx`, `store/simulation.ts`, `styles/globals.css` e `types/simulation.ts`
-- `package.json` e `package-lock.json`
+## Pendente / a confirmar
 
-**Frontend novo:**
-- Componentes `EnergyChart.tsx`, `ModulationLadder.tsx`, `NetworkSchematic.tsx`, `ScenarioBuilder.tsx`, `StateMachineDiagram.tsx` e `Timeline.tsx`
-- `hooks/useAnimatedNumber.ts`
-- `lib/estado.ts`
-- `scripts/copy-cesium.js` (o postinstall copia os assets do Cesium para `public/cesium`)
+- [ ] **Tráfego no `project_config.json`:** os serviços somam 8,9 Mbps + 4,1 de margem = **13 Mbps**,
+      mas o requisito diz **15 Mbps**. Confirmar no relatório.
+- [ ] Substituir os dados ilustrativos (alturas das antenas, altitude e perfil do terreno, NF) pelos do relatório.
+- [ ] `npm audit` ainda aponta avisos ao Next 14 que só desaparecem no Next 16 (migração maior; não afecta o uso local).
 
-**Frontend removido (staged):**
-- `components/TimeControl.tsx`
-
-**Raiz:**
-- `README.md`, `iniciar.bat` e `package.json` foram modificados.
-- Fora de `simulador/` há duas pastas novas, ainda não seguidas pelo git: `../reports/` e `../research_notes/` (pesquisa sobre "Simuladores RF e resiliência existentes").
-
-## Estrutura do projeto
+## Estrutura do projecto
 
 ```
 simulador/
-├── backend/            FastAPI
-│   ├── app/api/        routes.py
-│   ├── app/engine/     rf_calculator.py, state_machine.py
-│   ├── app/models/     schemas.py
-│   ├── app/config/     project_config.json
-│   ├── app/scenarios/  cenario_01.json … cenario_09.json (9 cenários de falha/recuperação)
-│   └── tests/          test_simulation.py
-├── frontend/           Next.js + Tailwind + Cesium/Leaflet
-│   └── src/{components,hooks,lib,pages,store,styles,types}
-├── iniciar.bat
-├── package.json        scripts dev / dev:backend / dev:frontend
+├── backend/            FastAPI — app/{api,engine,models,config,scenarios}, tests/ (79 testes)
+├── frontend/           Next.js + Tailwind + Cesium/Leaflet — src/{components,hooks,lib,pages,store,styles,types}
+├── instalar.bat        instalação num passo (Windows)
+├── iniciar.bat         arranque em desenvolvimento
+├── iniciar_apresentacao.bat  arranque em produção (defesa)
+├── package.json        scripts dev / build / start / apresentacao
 ├── README.md
 └── Relatorio.md
 ```
-
-## Próximos passos sugeridos
-
-- [x] Fazer commit das alterações (feito: `731858c`).
-- [ ] Correr os testes do backend: `cd backend && venv\Scripts\python -m pytest tests`
-- [x] Incluir `../reports/` e `../research_notes/` no repositório (entraram no commit `731858c`).
-- [ ] Ponderar pôr `frontend/tsconfig.tsbuildinfo` no `.gitignore`, porque é um ficheiro gerado.

@@ -5,9 +5,18 @@
     "predev": "powershell -Command \"3000,8000 | ForEach-Object { $c = Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue; if ($c) { Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue; Write-Host \\\"Porta $_ libertada\\\" } }\"",
     "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"blue,green\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && venv\\Scripts\\python -m uvicorn app.main:app --reload",
-    "dev:frontend": "cd frontend && npm run dev"
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "prestart": "powershell -Command \"3000,8000 | ForEach-Object { $c = Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue; if ($c) { Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue; Write-Host \\\"Porta $_ libertada\\\" } }\"",
+    "start": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"blue,green\" \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && venv\\Scripts\\python -m uvicorn app.main:app",
+    "start:frontend": "cd frontend && npm run start",
+    "apresentacao": "npm run build && npm run start"
   },
   "devDependencies": {
-    "concurrently": "^10.0.5"
+    "concurrently": "^9.2.5"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   }
 }

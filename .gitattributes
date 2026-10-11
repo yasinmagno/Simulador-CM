@@ -1,0 +1,2 @@
+# Ficheiros .bat precisam de CRLF no Windows (com LF o "goto" pode falhar)
+*.bat text eol=crlf
