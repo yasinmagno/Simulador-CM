@@ -64,6 +64,9 @@ interface SimulationStore {
   draft: SimulationInput;
   calcModalOpen: boolean;
   calcModalKey: string | null;
+  /** Secção "Fórmulas": aberta/fechada e secção para onde saltar */
+  formulasOpen: boolean;
+  formulasSection: string | null;
 
   /** Instantâneo (construtor) ou linha temporal de eventos */
   simMode: SimMode;
@@ -82,6 +85,8 @@ interface SimulationStore {
   setSelectedScenario: (n: number) => void;
   openCalcModal: (key: string) => void;
   closeCalcModal: () => void;
+  openFormulas: (section?: string) => void;
+  closeFormulas: () => void;
 
   setDraft: (patch: Partial<SimulationInput>) => void;
   reset: () => Promise<void>;
@@ -114,6 +119,8 @@ export const useSimulation = create<SimulationStore>((set, get) => {
     draft: DEFAULT_INPUT,
     calcModalOpen: false,
     calcModalKey: null,
+    formulasOpen: false,
+    formulasSection: null,
 
     simMode: 'instantaneo',
     timelineEvents: DEFAULT_TIMELINE,
@@ -160,6 +167,8 @@ export const useSimulation = create<SimulationStore>((set, get) => {
     setSelectedScenario: (n) => set({ selectedScenario: n }),
     openCalcModal: (key) => set({ calcModalOpen: true, calcModalKey: key }),
     closeCalcModal: () => set({ calcModalOpen: false, calcModalKey: null }),
+    openFormulas: (section) => set({ formulasOpen: true, formulasSection: section ?? null, calcModalOpen: false, calcModalKey: null }),
+    closeFormulas: () => set({ formulasOpen: false, formulasSection: null }),
 
     setDraft: (patch) => {
       const draft = { ...get().draft, ...patch };

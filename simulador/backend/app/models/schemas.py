@@ -52,12 +52,13 @@ class SimulationInput(BaseModel):
     satelite_ativo: bool = True
     edm_hcm: bool = True
     edm_guaxene: bool = True
-    bateria_hcm_wh: float = 12000.0
-    bateria_guaxene_wh: float = 3600.0
+    bateria_hcm_wh: float = Field(default=12000.0, ge=0)
+    bateria_guaxene_wh: float = Field(default=3600.0, ge=0)
     solar_hcm_ativo: bool = False
     solar_guaxene_ativo: bool = False
-    l_ambiente_db: float = 0.0
-    tempo_simulado_h: float = 0.0
+    # Atenuação extra (chuva/interferência); negativa seria um ganho, sem significado físico
+    l_ambiente_db: float = Field(default=0.0, ge=0.0, le=60.0)
+    tempo_simulado_h: float = Field(default=0.0, ge=0.0, le=240.0)
     # Condição meteorológica para o solar: 1 = céu limpo médio, ~0.2 = tempestade
     fator_solar: float = Field(default=1.0, ge=0.0, le=1.0)
 
@@ -167,7 +168,8 @@ class TimelineRequest(BaseModel):
     base: SimulationInput = SimulationInput()
     eventos: list[TimelineChange] = []
     duracao_h: float = Field(default=120.0, gt=0, le=240)
-    passo_h: float = Field(default=1.0, gt=0, le=24)
+    # Passo mínimo de 0,25 h: limita o número de fotogramas devolvidos (no máximo 960)
+    passo_h: float = Field(default=1.0, ge=0.25, le=24)
 
 
 class TimelineFrame(BaseModel):

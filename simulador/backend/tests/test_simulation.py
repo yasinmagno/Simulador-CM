@@ -150,3 +150,27 @@ class TestLinhaTemporal:
         from fastapi import HTTPException
         with pytest.raises(HTTPException):
             run_timeline(self._req([{"tempo_h": 1, "alteracoes": {"p_tx_dbm": 30}}]))
+
+    def test_valor_invalido_422(self):
+        from fastapi import HTTPException
+        with pytest.raises(HTTPException) as e:
+            run_timeline(self._req([{"tempo_h": 1, "alteracoes": {"l_ambiente_db": -5}}]))
+        assert e.value.status_code == 422
+
+
+class TestValidacao:
+    @pytest.mark.parametrize("campo,valor", [
+        ("l_ambiente_db", -1),        # atenuação negativa seria um ganho
+        ("tempo_simulado_h", -1),
+        ("tempo_simulado_h", 1000),
+        ("fator_solar", 1.5),
+    ])
+    def test_rejeita_fora_do_intervalo(self, campo, valor):
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
+            SimulationInput(**{campo: valor})
+
+    def test_passo_minimo_timeline(self):
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
+            TimelineRequest(duracao_h=240, passo_h=0.001)

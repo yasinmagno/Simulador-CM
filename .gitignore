@@ -6,6 +6,7 @@ npm-debug.log*
 # Next.js build output
 .next/
 out/
+*.tsbuildinfo
 
 # Cesium static assets (grandes demais para git)
 simulador/frontend/public/cesium/

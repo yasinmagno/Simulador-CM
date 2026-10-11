@@ -41,7 +41,8 @@ export function StateMachineDiagram() {
 
   return (
     <div className={clsx('bg-white border-b border-gray-200 px-4', compacto ? 'pt-2 pb-1.5' : 'pt-3 pb-2')}>
-      <div className="relative" style={{ height: compacto ? 44 : 54 }}>
+      {/* Altura suficiente para o círculo activo + nome, para a causa da transição não colar às etiquetas */}
+      <div className="relative" style={{ height: compacto ? 54 : 60 }}>
         {/* Trilho com setas entre estados */}
         <div className="absolute left-[10%] right-[10%] top-[14px] h-0.5 bg-gray-200" />
         {STATE_ORDER.slice(0, -1).map((s, i) => (
@@ -97,7 +98,7 @@ export function StateMachineDiagram() {
       </div>
 
       {/* Causa da transição — reaparece com animação a cada mudança */}
-      <div className="h-4 text-center">
+      <div className="h-4 mt-0.5 text-center">
         {transicao && transicao.de !== transicao.para ? (
           <p key={transicao.seq} className="fade-slide-in text-[11px] text-gray-600 truncate">
             <span className="font-semibold" style={{ color: STATE_HEX[transicao.de] }}>{transicao.de}</span>

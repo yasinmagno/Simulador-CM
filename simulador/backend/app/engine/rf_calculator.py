@@ -198,25 +198,6 @@ def battery_floor_wh(bateria_max_wh: float, dod: float) -> float:
     return round(bateria_max_wh * (1 - dod), 6)
 
 
-def update_battery(
-    bateria_wh: float,
-    carga_w: float,
-    solar_w: float,
-    delta_h: float,
-    bateria_max_wh: float,
-    dod: float,
-) -> float:
-    """Atualiza nível da bateria após delta_h horas.
-
-    Energia consumida = (carga_w - solar_w) * delta_h.
-    Não desce abaixo de bateria_max_wh * (1 - dod).
-    """
-    consumo = (carga_w - solar_w) * delta_h
-    nova = bateria_wh - consumo
-    minimo = battery_floor_wh(bateria_max_wh, dod)
-    return max(nova, minimo)
-
-
 def remaining_autonomy_h(
     bateria_wh: float,
     bateria_max_wh: float,
