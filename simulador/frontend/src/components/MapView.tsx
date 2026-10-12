@@ -21,7 +21,17 @@ const CesiumView = dynamic(() => import('./CesiumView'), {
   ),
 });
 
-const NetworkSchematic = dynamic(() => import('./NetworkSchematic').then((m) => m.NetworkSchematic), { ssr: false });
+const NetworkSchematic3D = dynamic(
+  () => import('./NetworkSchematic3D').then((m) => m.NetworkSchematic3D),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full flex items-center justify-center bg-sky-950">
+        <p className="text-sm text-gray-400">A carregar cena 3D…</p>
+      </div>
+    ),
+  }
+);
 
 type MapMode = 'esquema' | '2d' | '3d';
 const LABEL: Record<MapMode, string> = { esquema: 'Esquema', '2d': '2D', '3d': '3D' };
@@ -52,7 +62,7 @@ export function MapView() {
         ))}
       </div>
 
-      {mapMode === 'esquema' ? <NetworkSchematic /> : mapMode === '2d' ? <LeafletMap /> : <CesiumView />}
+      {mapMode === 'esquema' ? <NetworkSchematic3D /> : mapMode === '2d' ? <LeafletMap /> : <CesiumView />}
 
       {/* Chuva sobre o mapa quando há atenuação extra */}
       {chuva > 0 && mapMode !== 'esquema' && (

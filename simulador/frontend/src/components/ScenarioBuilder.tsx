@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { Radio, Wifi, Globe, Satellite, Zap, Sun, CloudRain, Clock, SlidersHorizontal } from 'lucide-react';
+import { Radio, Wifi, Satellite, Zap, Sun, CloudRain, Clock, SlidersHorizontal } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { useSimulation } from '@/store/simulation';
 import type { SimulationInput, SimMode } from '@/types/simulation';
@@ -10,11 +10,9 @@ type BoolKey = {
 }[keyof SimulationInput];
 
 const REDE: { key: BoolKey; label: string; icon: ComponentType<{ className?: string }> }[] = [
-  { key: 'ptp_ativo',             label: 'Rádio PtP 5,8 GHz', icon: Radio },
-  { key: 'g4_local_disponivel',   label: '4G/5G local',       icon: Wifi },
-  { key: 'g4_externo_disponivel', label: '4G/5G externo',     icon: Wifi },
-  { key: 'isp_ativo',             label: 'ISP / fibra',       icon: Globe },
-  { key: 'satelite_ativo',        label: 'Satélite (HCM)',    icon: Satellite },
+  { key: 'ptp_ativo',           label: 'Rádio PtP 5,8 GHz', icon: Radio },
+  { key: 'g4_local_disponivel', label: '4G/5G (redundância)', icon: Wifi },
+  { key: 'satelite_ativo',      label: 'Satélite (HCM)',     icon: Satellite },
 ];
 
 const ENERGIA: { key: BoolKey; label: string; icon: ComponentType<{ className?: string }> }[] = [

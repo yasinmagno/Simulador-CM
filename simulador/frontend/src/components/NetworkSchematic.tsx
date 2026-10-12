@@ -2,29 +2,33 @@ import { useSimulation } from '@/store/simulation';
 import { STATE_HEX } from '@/lib/estado';
 
 /*
- * Esquema animado da arquitectura híbrida (relatório §7):
- * pacotes circulam apenas nos caminhos ativos, componentes em falha ficam
- * a vermelho com ✕, edifícios apagam-se sem energia, a bateria esvazia,
- * o sol carrega e a chuva aparece quando há atenuação extra.
+ * Esquema animado da arquitectura híbrida (relatório §7) — 3 tecnologias principais:
+ *   1. PtP 5,8 GHz       — ligação directa HCM ↔ Guaxene (caminho principal)
+ *   2. 4G/5G             — redundância local via BTS (quando PtP falha)
+ *   3. Satélite          — contingência externa apenas no HCM (quando meios terrestres falham)
+ *
+ * ISP/fibra e 4G-externo são infraestrutura de acesso à Internet do HCM; o seu estado
+ * reflecte-se no badge da nuvem, não como caminhos de comunicação separados.
  */
 
 // Geometria (viewBox 1000 × 560)
 const P = {
-  hcm: { x: 170, y: 330 },
-  gua: { x: 830, y: 330 },
+  hcm:    { x: 170, y: 330 },
+  gua:    { x: 830, y: 330 },
   antHcm: { x: 238, y: 214 },
   antGua: { x: 762, y: 232 },
-  torre: { x: 500, y: 430 },
-  nuvem: { x: 150, y: 92 },
-  sat: { x: 500, y: 78 },
+  torre:  { x: 500, y: 430 },
+  nuvem:  { x: 150, y: 92  },
+  sat:    { x: 500, y: 78  },
 };
 
+// 3 tecnologias de comunicação propostas no projecto
 const PATHS = {
-  ptp: `M${P.antHcm.x},${P.antHcm.y} L${P.antGua.x},${P.antGua.y}`,
-  g4Local: `M215,372 Q500,530 785,372`,
-  isp: `M150,282 L150,128`,
-  g4Ext: `M215,380 Q360,450 488,410 Q360,250 182,112`,
-  sat: `M${P.antHcm.x},${P.antHcm.y - 8} Q330,92 486,84 Q330,30 190,86`,
+  ptp:     `M${P.antHcm.x},${P.antHcm.y} L${P.antGua.x},${P.antGua.y}`,
+  // arco via BTS; ápice ≈ y=411 (acima do solo em y=470)
+  g4Local: `M215,372 Q500,450 785,372`,
+  // arco simples antena HCM → satélite
+  sat:     `M${P.antHcm.x},${P.antHcm.y - 6} Q330,20 ${P.sat.x},${P.sat.y + 14}`,
 };
 
 const CAP_MAX = 121.6;
@@ -182,7 +186,6 @@ export function NetworkSchematic() {
   const local = network.caminho_local;
   const externo = network.caminho_externo;
 
-  // Uma avaria tem prioridade; depois, um caminho sem energia num dos extremos não pode estar "em espera"
   const status = (ativo: boolean, emUso: boolean, comEnergia = true): LinkStatus =>
     (!ativo ? 'falha' : !comEnergia ? 'sem-energia' : emUso ? 'ativo' : 'espera');
   const ambos = network.hcm_com_energia && network.guaxene_com_energia;
@@ -197,6 +200,16 @@ export function NetworkSchematic() {
   const chuva = Math.min(inp.l_ambiente_db / 12, 1);
   const solarComSol = inp.fator_solar > 0;
 
+  // Estado do acesso externo do HCM (infraestrutura; não é tecnologia proposta)
+  const hcmTemInternet = externo !== 'Nenhum';
+  const externoLabel = externo === 'ISP/fibra' ? 'via fibra'
+    : externo === '4G/5G' ? 'via 4G/5G'
+    : externo === 'Satélite' ? 'via satélite'
+    : 'sem internet';
+  const externoColor = externo === 'Nenhum' ? '#dc2626'
+    : externo === 'Satélite' ? '#7c3aed'
+    : '#16a34a';
+
   return (
     <div className="h-full w-full bg-gradient-to-b from-sky-50 to-slate-100 relative overflow-hidden">
       <svg viewBox="0 0 1000 560" className="h-full w-full" preserveAspectRatio="xMidYMid meet">
@@ -205,12 +218,44 @@ export function NetworkSchematic() {
         <path d="M380,470 Q500,450 620,470 L620,560 L380,560 Z" fill="#bfdbfe" opacity={0.7} />
         <text x={500} y={545} textAnchor="middle" fontSize={11} fill="#3b82f6" opacity={0.8}>Baía de Maputo · 3,69 km</text>
 
-        {/* Internet e satélite */}
+        {/* Nuvem Internet — estado do acesso externo do HCM */}
         <g transform={`translate(${P.nuvem.x},${P.nuvem.y})`}>
           <path d="M-46,10 a20,20 0 0 1 12,-30 a26,26 0 0 1 48,-6 a18,18 0 0 1 26,16 a16,16 0 0 1 -4,30 h-74 a16,16 0 0 1 -8,-10 z"
-            fill="white" stroke="#94a3b8" />
-          <text y={8} textAnchor="middle" fontSize={13} fontWeight={600} fill="#475569">Internet</text>
+            fill={hcmTemInternet ? 'white' : '#fee2e2'} stroke={hcmTemInternet ? '#94a3b8' : '#ef4444'} />
+          <text y={4} textAnchor="middle" fontSize={12} fontWeight={600} fill={hcmTemInternet ? '#475569' : '#dc2626'}>
+            Internet
+          </text>
+          <text y={20} textAnchor="middle" fontSize={9} fill={externoColor}>
+            {externoLabel}
+          </text>
         </g>
+
+        {/* Linha estática: satélite ↔ Internet (o satélite serve de relay; sempre presente) */}
+        <line
+          x1={P.sat.x - 12} y1={P.sat.y + 2}
+          x2={P.nuvem.x + 44} y2={P.nuvem.y + 10}
+          stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="4 3" opacity={0.45}
+        />
+
+        {/* Torre 4G/5G */}
+        <g transform={`translate(${P.torre.x},${P.torre.y})`}>
+          <path d="M-14,40 L0,-30 L14,40 M-9,15 L9,15 M-5,-5 L5,-5" fill="none"
+            stroke={inp.g4_local_disponivel ? '#475569' : '#ef4444'} strokeWidth={3} />
+          <circle cy={-34} r={5} fill={inp.g4_local_disponivel ? '#475569' : '#ef4444'} />
+          <text y={58} textAnchor="middle" fontSize={11} fontWeight={600} fill="#475569">BTS 4G/5G</text>
+        </g>
+
+        {/* Tecnologia 2: 4G/5G — redundância local HCM ↔ Guaxene via BTS */}
+        <Link id="ns-g4" d={PATHS.g4Local} status={status(inp.g4_local_disponivel, local === '4G/5G', ambos)}
+          cor={cor} dur={3} pacotes={4} bidirecional
+          label="4G/5G (redundância)" labelPos={{ x: 640, y: 436 }} />
+
+        {/* Tecnologia 3: Satélite — contingência externa; apenas HCM (renderizado antes do ícone) */}
+        <Link id="ns-sat" d={PATHS.sat} status={status(inp.satelite_ativo, externo === 'Satélite', hcmOk)}
+          cor={cor} dur={5} pacotes={2} bidirecional
+          label="Satélite · contingência (apenas HCM)" labelPos={{ x: 330, y: 150 }} />
+
+        {/* Ícone satélite — renderizado depois do Link para cobrir o terminus do arco */}
         <g transform={`translate(${P.sat.x},${P.sat.y})`} className={inp.satelite_ativo ? 'sat-flutuar' : undefined}>
           <rect x={-34} y={-6} width={22} height={12} fill="#1e40af" />
           <rect x={12} y={-6} width={22} height={12} fill="#1e40af" />
@@ -218,25 +263,7 @@ export function NetworkSchematic() {
           {!inp.satelite_ativo && <text y={6} textAnchor="middle" fontSize={16} fill="#dc2626">✕</text>}
         </g>
 
-        {/* Torre 4G/5G */}
-        <g transform={`translate(${P.torre.x},${P.torre.y})`}>
-          <path d="M-14,40 L0,-30 L14,40 M-9,15 L9,15 M-5,-5 L5,-5" fill="none"
-            stroke={inp.g4_local_disponivel || inp.g4_externo_disponivel ? '#475569' : '#ef4444'} strokeWidth={3} />
-          <circle cy={-34} r={5} fill={inp.g4_local_disponivel || inp.g4_externo_disponivel ? '#475569' : '#ef4444'} />
-          <text y={58} textAnchor="middle" fontSize={11} fontWeight={600} fill="#475569">BTS 4G/5G</text>
-        </g>
-
-        {/* Caminhos externos (HCM → Internet) */}
-        <Link id="ns-isp" d={PATHS.isp} status={status(inp.isp_ativo, externo === 'ISP/fibra', hcmOk)}
-          cor={cor} dur={1.6} pacotes={3} bidirecional label="ISP / fibra" labelPos={{ x: 80, y: 205 }} />
-        <Link id="ns-g4ext" d={PATHS.g4Ext} status={status(inp.g4_externo_disponivel, externo === '4G/5G', hcmOk)}
-          cor={cor} dur={2.8} pacotes={3} bidirecional label="4G/5G externo" labelPos={{ x: 330, y: 300 }} />
-        <Link id="ns-sat" d={PATHS.sat} status={status(inp.satelite_ativo, externo === 'Satélite', hcmOk)}
-          cor={cor} dur={5} pacotes={2} bidirecional label="Satélite (contingência)" labelPos={{ x: 360, y: 40 }} />
-
-        {/* Caminhos locais (HCM ↔ Guaxene) */}
-        <Link id="ns-g4" d={PATHS.g4Local} status={status(inp.g4_local_disponivel, local === '4G/5G', ambos)}
-          cor={cor} dur={3} pacotes={4} bidirecional label="4G/5G local (redundância)" labelPos={{ x: 650, y: 505 }} />
+        {/* Tecnologia 1: PtP 5,8 GHz — caminho principal HCM ↔ Guaxene */}
         <Link id="ns-ptp" d={PATHS.ptp}
           status={ptpSemSinal ? 'falha' : status(inp.ptp_ativo, local === 'PtP', ambos)}
           cor={cor} dur={ptpDur} pacotes={Math.max(2, modIdx + 2)} bidirecional
@@ -244,7 +271,7 @@ export function NetworkSchematic() {
             ? ` · ${MOD_LABEL[lb.modulacao_selecionada]} · ${lb.capacidade_mbps.toFixed(1)} Mbps` : ''}`}
           labelPos={{ x: 500, y: 196 }} />
 
-        {/* Chuva sobre o enlace */}
+        {/* Chuva sobre o enlace PtP */}
         {chuva > 0 && (
           <g opacity={0.35 + chuva * 0.5}>
             {Array.from({ length: Math.round(10 + chuva * 30) }).map((_, i) => (
@@ -273,7 +300,7 @@ export function NetworkSchematic() {
           bateriaPct={batPct(energy.guaxene_bateria_wh, 3600)} esgotada={!network.guaxene_com_energia}
           solar={inp.solar_guaxene_ativo} solarAtivo={inp.solar_guaxene_ativo && !inp.edm_guaxene && solarComSol} />
 
-        {/* Guaxene isolada */}
+        {/* Alertas */}
         {!network.guaxene_com_energia && (
           <g transform={`translate(${P.gua.x},${P.gua.y + 30})`} className="alerta-piscar">
             <rect x={-70} y={-16} width={140} height={26} rx={13} fill="#991b1b" />
