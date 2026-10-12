@@ -41,7 +41,10 @@ def compute_network_state(
     energia_nominal = inp.edm_hcm and inp.edm_guaxene
 
     # --- Caminho local HCM ↔ Guaxene ---
-    if inp.ptp_ativo and hcm_energia and guaxene_energia:
+    # ptp_ativo=True significa que o hardware está ligado; capacidade_mbps>0 significa
+    # que existe pelo menos uma modulação viável (chuva extrema pode zerá-la).
+    ptp_com_sinal = inp.ptp_ativo and capacidade_mbps > 0
+    if ptp_com_sinal and hcm_energia and guaxene_energia:
         caminho_local = "PtP"
     elif inp.g4_local_disponivel and hcm_energia and guaxene_energia:
         caminho_local = "4G/5G"
