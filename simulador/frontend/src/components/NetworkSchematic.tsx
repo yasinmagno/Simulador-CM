@@ -271,15 +271,25 @@ export function NetworkSchematic() {
             ? ` · ${MOD_LABEL[lb.modulacao_selecionada]} · ${lb.capacidade_mbps.toFixed(1)} Mbps` : ''}`}
           labelPos={{ x: 500, y: 196 }} />
 
-        {/* Chuva sobre o enlace PtP */}
+        {/* Chuva */}
         {chuva > 0 && (
-          <g opacity={0.35 + chuva * 0.5}>
-            {Array.from({ length: Math.round(10 + chuva * 30) }).map((_, i) => (
-              <line key={i} x1={300 + ((i * 53) % 420)} y1={120} x2={292 + ((i * 53) % 420)} y2={136}
-                stroke="#3b82f6" strokeWidth={1.5} className="gota"
-                style={{ animationDelay: `${(i % 7) * 0.13}s` }} />
-            ))}
-            <text x={500} y={150} textAnchor="middle" fontSize={11} fill="#1d4ed8">
+          <g>
+            {Array.from({ length: Math.round(30 + chuva * 90) }).map((_, i) => {
+              const x = 12 + ((i * 41 + i * i * 7) % 976);
+              const len = 18 + (i % 4) * 5;
+              const w = 1 + (i % 3) * 0.5;
+              const dur = 0.7 + (i % 5) * 0.07;
+              const op = 0.45 + (i % 6) * 0.09;
+              return (
+                <line key={i}
+                  x1={x} y1={80} x2={x - 7} y2={80 + len}
+                  stroke="#60a5fa" strokeWidth={w} opacity={op}
+                  className="gota"
+                  style={{ animationDelay: `${(i % 13) * 0.065}s`, animationDuration: `${dur}s` }}
+                />
+              );
+            })}
+            <text x={500} y={160} textAnchor="middle" fontSize={11} fill="#1d4ed8">
               Atenuação +{inp.l_ambiente_db} dB
             </text>
           </g>

@@ -239,14 +239,19 @@ function SatBeam({ status, cor }: { status: LinkStatus; cor: string }) {
   );
 }
 
-// ── Rain system ──────────────────────────────────────────────────
+// ── Rain system — lineSegments para traços realistas ─────────────
+const RAIN_COUNT = 400;
 function RainSystem({ intensity }: { intensity: number }) {
   const [geo, posAttr] = useMemo(() => {
-    const arr = new Float32Array(200 * 3);
-    for (let i = 0; i < 200; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 32;
-      arr[i * 3 + 1] = Math.random() * 16;
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 22;
+    // 2 vértices por traço: topo e base (6 floats por traço)
+    const arr = new Float32Array(RAIN_COUNT * 6);
+    for (let i = 0; i < RAIN_COUNT; i++) {
+      const x = (Math.random() - 0.5) * 42;
+      const y = Math.random() * 22;
+      const z = (Math.random() - 0.5) * 30;
+      const len = 0.32 + Math.random() * 0.42;
+      arr[i * 6]     = x;        arr[i * 6 + 1] = y;       arr[i * 6 + 2] = z;
+      arr[i * 6 + 3] = x - 0.1; arr[i * 6 + 4] = y - len; arr[i * 6 + 5] = z;
     }
     const a = new THREE.BufferAttribute(arr, 3);
     const g = new THREE.BufferGeometry();
@@ -256,17 +261,27 @@ function RainSystem({ intensity }: { intensity: number }) {
 
   useFrame((_, delta) => {
     const arr = posAttr.array as Float32Array;
-    for (let i = 0; i < 200; i++) {
-      arr[i * 3 + 1] -= delta * 8;
-      if (arr[i * 3 + 1] < 0) arr[i * 3 + 1] = 16;
+    const speed = 9 + intensity * 5;
+    for (let i = 0; i < RAIN_COUNT; i++) {
+      arr[i * 6 + 1] -= delta * speed;
+      arr[i * 6 + 4] -= delta * speed;
+      if (arr[i * 6 + 1] < -0.5) {
+        const x = (Math.random() - 0.5) * 42;
+        const y = 22 + Math.random() * 3;
+        const z = (Math.random() - 0.5) * 30;
+        const len = 0.32 + Math.random() * 0.42;
+        arr[i * 6]     = x;        arr[i * 6 + 1] = y;
+        arr[i * 6 + 2] = z;        arr[i * 6 + 3] = x - 0.1;
+        arr[i * 6 + 4] = y - len;  arr[i * 6 + 5] = z;
+      }
     }
     posAttr.needsUpdate = true;
   });
 
   return (
-    <points geometry={geo}>
-      <pointsMaterial color="#3b82f6" size={0.12} transparent opacity={intensity} sizeAttenuation />
-    </points>
+    <lineSegments geometry={geo}>
+      <lineBasicMaterial color="#93c5fd" transparent opacity={0.3 + intensity * 0.5} />
+    </lineSegments>
   );
 }
 

@@ -77,11 +77,12 @@ html, body {
 
 /* Chuva */
 @keyframes gota {
-  from { transform: translateY(-40px); opacity: 0; }
-  30%  { opacity: 1; }
-  to   { transform: translateY(260px); opacity: 0; }
+  from { transform: translateY(-20px); opacity: 0; }
+  12%  { opacity: 0.9; }
+  88%  { opacity: 0.7; }
+  to   { transform: translateY(480px); opacity: 0; }
 }
-.gota { animation: gota 0.9s linear infinite; }
+.gota { animation: gota 0.85s linear infinite; }
 
 /* Sol a rodar quando está a carregar a bateria */
 @keyframes rodar { to { transform: rotate(360deg); } }
@@ -119,11 +120,13 @@ html, body {
 .borda-critica { animation: borda-critica 1.4s ease-in-out infinite; }
 
 /* Chuva sobre o mapa (overlay) */
-@keyframes chuva-mapa { to { background-position: -40px 400px; } }
+@keyframes chuva-mapa { to { background-position: -30px 300px, -20px 200px; } }
 .chuva-overlay {
-  background-image: repeating-linear-gradient(105deg, rgba(59,130,246,0.35) 0 1px, transparent 1px 14px);
-  background-size: 200px 200px;
-  animation: chuva-mapa 0.6s linear infinite;
+  background-image:
+    repeating-linear-gradient(108deg, rgba(147,197,253,0.55) 0 1.5px, transparent 1.5px 16px),
+    repeating-linear-gradient(108deg, rgba(59,130,246,0.25) 0 0.8px,  transparent 0.8px 10px);
+  background-size: 180px 180px, 110px 110px;
+  animation: chuva-mapa 0.5s linear infinite;
 }
 
 /* Marcador BTS no Leaflet */
