@@ -149,18 +149,19 @@ export default function CesiumView() {
         selectionIndicator: false,
       });
 
-      // Base offline (NaturalEarth) e, por cima, OpenStreetMap quando há Internet
+      // Base offline (NaturalEarth) e, por cima, OpenStreetMap quando há Internet.
+      // API Cesium ≥1.110: fromProviderAsync em vez de addImageryProvider (removido).
       viewer.imageryLayers.removeAll();
-      // (no Cesium ≥1.104 o SingleTileImageryProvider cria-se com fromUrl)
       viewer.imageryLayers.add(Cesium.ImageryLayer.fromProviderAsync(
         Cesium.SingleTileImageryProvider.fromUrl('/cesium/Assets/Textures/NaturalEarthII/0/0/0.jpg', {
           rectangle: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
         }),
         {},
       ));
-      viewer.imageryLayers.addImageryProvider(
-        new Cesium.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/' })
-      );
+      viewer.imageryLayers.add(Cesium.ImageryLayer.fromProviderAsync(
+        Cesium.OpenStreetMapImageryProvider.fromUrl('https://tile.openstreetmap.org/'),
+        {},
+      ));
 
       // Créditos do Cesium escondidos; a atribuição do OpenStreetMap (obrigatória) é mostrada à parte
       (viewer.cesiumWidget.creditContainer as HTMLElement).style.display = 'none';
