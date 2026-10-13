@@ -149,13 +149,15 @@ export default function CesiumView() {
         selectionIndicator: false,
       });
 
-      // Base offline (NaturalEarth) e, por cima, OpenStreetMap quando há Internet.
-      // API Cesium ≥1.110: fromProviderAsync em vez de addImageryProvider (removido).
+      // Base offline (NaturalEarth TMS incluído no bundle do Cesium) +
+      // OpenStreetMap por cima quando há Internet.
+      // API Cesium ≥1.110: fromProviderAsync; TileMapServiceImageryProvider para o TMS local.
       viewer.imageryLayers.removeAll();
       viewer.imageryLayers.add(Cesium.ImageryLayer.fromProviderAsync(
-        Cesium.SingleTileImageryProvider.fromUrl('/cesium/Assets/Textures/NaturalEarthII/0/0/0.jpg', {
-          rectangle: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
-        }),
+        Cesium.TileMapServiceImageryProvider.fromUrl(
+          Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII'),
+          { fileExtension: 'jpg', maximumLevel: 5 },
+        ),
         {},
       ));
       viewer.imageryLayers.add(Cesium.ImageryLayer.fromProviderAsync(
