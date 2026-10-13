@@ -1,0 +1,29 @@
+services:
+
+  # ── Backend Python / FastAPI ──────────────────────────────────────
+  - type: web
+    name: simulador-hcm-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+  # ── Frontend Next.js ──────────────────────────────────────────────
+  # Depois do backend estar activo, copia o seu URL (https://simulador-hcm-api.onrender.com)
+  # e define NEXT_PUBLIC_API_URL no dashboard do Render antes de fazer deploy do frontend.
+  - type: web
+    name: simulador-hcm
+    runtime: node
+    rootDir: frontend
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npx next start -p $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: "18.17.0"
+      - key: NEXT_PUBLIC_API_URL
+        sync: false   # definir manualmente no dashboard após backend estar activo

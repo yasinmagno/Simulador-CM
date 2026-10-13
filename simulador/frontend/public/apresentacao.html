@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rede Resiliente HCM ↔ Guaxene</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;
+  --blue:#3b82f6;--blue-dk:#1d4ed8;
+  --green:#22c55e;--green-dk:#16a34a;
+  --yellow:#eab308;--orange:#f97316;--red:#ef4444;
+  --text:#f1f5f9;--muted:#94a3b8;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif;
+  overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── PROGRESS ── */
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--blue);
+  transition:width .4s ease;z-index:200}
+
+/* ── ENGINE ── */
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:3rem 5.5rem;
+  opacity:0;transform:translateX(55px);pointer-events:none}
+.slide.active{opacity:1;transform:translateX(0);
+  transition:opacity .4s ease,transform .4s ease;pointer-events:all}
+.slide.exiting{opacity:0;transform:translateX(-55px);
+  transition:opacity .32s ease,transform .32s ease}
+
+/* ── NAV ── */
+.dots{position:fixed;bottom:1.3rem;left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;z-index:100}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--bg3);
+  cursor:pointer;transition:all .22s}
+.dot.on{background:var(--blue);transform:scale(1.4)}
+.arr{position:fixed;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.04);border:1px solid var(--bg3);
+  color:var(--muted);width:36px;height:36px;border-radius:50%;
+  cursor:pointer;font-size:1.1rem;display:flex;align-items:center;
+  justify-content:center;z-index:100;transition:all .2s;line-height:1}
+.arr:hover{background:rgba(255,255,255,.09);color:var(--text)}
+#ap{left:.9rem}#an{right:.9rem}
+.ctr{position:fixed;top:1rem;right:1.4rem;font-size:.7rem;
+  color:var(--muted);z-index:100;letter-spacing:.07em}
+
+/* ── SPEAKER BADGE ── */
+.spk{position:absolute;top:1.2rem;left:1.4rem;font-size:.58rem;
+  letter-spacing:.1em;text-transform:uppercase;padding:.22rem .65rem;
+  border-radius:999px;font-weight:700;z-index:10}
+.spk-t{color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3)}
+.spk-y{color:var(--green);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3)}
+.spk-a{color:var(--yellow);background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3)}
+
+/* ── TYPOGRAPHY ── */
+.tag{display:inline-block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:.25rem .8rem;border-radius:999px;margin-bottom:.8rem;font-weight:700}
+.tag-b{color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25)}
+.tag-g{color:var(--green);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25)}
+.tag-o{color:var(--orange);background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25)}
+.tag-r{color:var(--red);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25)}
+h1{font-size:clamp(1.8rem,3.4vw,3rem);font-weight:800;line-height:1.15;text-align:center}
+h2{font-size:clamp(1.3rem,2.3vw,1.95rem);font-weight:700;line-height:1.2;text-align:center}
+h3{font-size:clamp(.88rem,1.5vw,1.1rem);font-weight:600}
+p{color:var(--muted);line-height:1.7;font-size:clamp(.76rem,1.25vw,.92rem)}
+.cg{color:var(--green)}.cb{color:var(--blue)}.co{color:var(--orange)}
+.cy{color:var(--yellow)}.cr{color:var(--red)}
+
+/* ── ANIMATIONS ── */
+@keyframes fade-up{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rain-drop{0%{transform:translateY(-20px);opacity:0}10%{opacity:.6}90%{opacity:.6}100%{transform:translateY(130px);opacity:0}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes flow{to{stroke-dashoffset:-18}}
+@keyframes flow-fast{to{stroke-dashoffset:-14}}
+
+/* ── TABLE UTILS ── */
+.gtable{width:100%;border-collapse:collapse}
+.gtable th,.gtable td{padding:.45rem .75rem;text-align:left;font-size:.76rem;border:1px solid var(--bg3)}
+.gtable th{background:var(--bg3);color:var(--text);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}
+.gtable td{color:var(--muted);background:var(--bg2)}
+.gtable tr:nth-child(even) td{background:#1a2740}
+.gtable .hl td{background:rgba(34,197,94,.08);color:var(--text);font-weight:600}
+.gtable .hl td:first-child::before{content:"★ ";color:var(--green)}
+
+/* ── METRIC CARD ── */
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;max-width:880px;width:100%;margin-top:1.2rem}
+.metric{background:var(--bg2);border:1px solid var(--bg3);border-radius:.9rem;
+  padding:1.2rem;text-align:center;animation:fade-up .45s both}
+.metric:nth-child(2){animation-delay:.1s}
+.metric:nth-child(3){animation-delay:.2s}
+.metric:nth-child(4){animation-delay:.3s}
+.metric .mnum{font-size:clamp(1.3rem,2.5vw,2rem);font-weight:800;line-height:1;margin:.35rem 0 .2rem}
+.metric .mlabel{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.metric .msub{font-size:.7rem;color:var(--muted);margin-top:.25rem}
+
+/* ─────────────────────────────
+   SLIDE 1 – CAPA
+───────────────────────────── */
+#s1{background:radial-gradient(ellipse at 50% 0%,rgba(29,78,216,.28) 0%,var(--bg) 65%)}
+#s1 .wave-bg{position:absolute;inset:0;pointer-events:none;opacity:.18}
+#s1 .inst{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;text-align:center}
+#s1 .cadeira{font-size:.8rem;color:var(--blue);margin-bottom:1.5rem;text-align:center}
+#s1 .sub{font-size:clamp(.78rem,1.35vw,.98rem);color:var(--muted);text-align:center;max-width:630px;margin-bottom:2rem;line-height:1.55}
+#s1 .members{display:flex;gap:2.8rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.1rem}
+#s1 .mbr{text-align:center;font-size:.78rem}
+#s1 .mbr strong{display:block;color:var(--text);font-weight:600;font-size:.83rem}
+#s1 .mbr span{color:var(--muted)}
+#s1 .footer{display:flex;gap:3rem;font-size:.71rem;color:var(--muted);border-top:1px solid var(--bg3);padding-top:.85rem}
+#s1 .footer strong{color:var(--text)}
+
+/* ─────────────────────────────
+   SLIDE 2 – CONTEXTO
+───────────────────────────── */
+#s2{position:relative}
+#s2 .rain-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.rdrop{position:absolute;width:1.5px;height:16px;
+  background:linear-gradient(to bottom,transparent,rgba(100,180,255,.55));
+  border-radius:1px;animation:rain-drop linear infinite}
+#s2 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;max-width:820px;width:100%;margin-top:1.7rem}
+#s2 .sc{background:var(--bg2);border:1px solid var(--bg3);border-radius:.9rem;padding:1.5rem 1.3rem;text-align:center}
+#s2 .sc:nth-child(1){animation:fade-up .5s .1s both}
+#s2 .sc:nth-child(2){animation:fade-up .5s .22s both}
+#s2 .sc:nth-child(3){animation:fade-up .5s .34s both}
+#s2 .snum{font-size:2.3rem;font-weight:800;line-height:1;margin:.4rem 0 .18rem}
+#s2 .sc h3{font-size:.85rem;margin-bottom:.18rem}
+#s2 .sc p{font-size:.72rem}
+#s2 .quote{max-width:660px;font-size:.78rem;color:var(--muted);text-align:left;
+  border-left:3px solid var(--blue);padding:.5rem 1rem;
+  background:rgba(59,130,246,.06);border-radius:0 .5rem .5rem 0;margin-top:1.3rem;
+  animation:fade-up .5s .48s both}
+
+/* ─────────────────────────────
+   SLIDE 3 – CENÁRIO
+───────────────────────────── */
+#s3 .geo-wrap{display:flex;align-items:center;gap:2.5rem;margin-top:1.2rem;width:100%;max-width:860px}
+#s3 .geo-svg{flex-shrink:0}
+#s3 .geo-info{display:flex;flex-direction:column;gap:.9rem}
+#s3 .geo-pt{background:var(--bg2);border:1px solid var(--bg3);border-radius:.75rem;padding:.85rem 1.1rem}
+#s3 .geo-pt h3{font-size:.88rem;margin-bottom:.2rem}
+#s3 .geo-pt p{font-size:.74rem}
+#s3 .dist-note{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.25);
+  border-radius:.75rem;padding:.75rem 1rem;font-size:.75rem;color:var(--muted)}
+#s3 .dist-note strong{color:var(--green)}
+
+/* ─────────────────────────────
+   SLIDE 4 – OBJECTIVOS
+───────────────────────────── */
+#s4 .obj-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;
+  max-width:820px;width:100%;margin-top:1.3rem}
+#s4 .obj{display:flex;align-items:flex-start;gap:.7rem;
+  background:var(--bg2);border:1px solid var(--bg3);border-radius:.75rem;
+  padding:.85rem 1rem;animation:fade-up .4s both}
+#s4 .obj:nth-child(1){animation-delay:.05s}
+#s4 .obj:nth-child(2){animation-delay:.13s}
+#s4 .obj:nth-child(3){animation-delay:.21s}
+#s4 .obj:nth-child(4){animation-delay:.29s}
+#s4 .obj:nth-child(5){animation-delay:.37s}
+#s4 .obj:nth-child(6){animation-delay:.45s}
+#s4 .obj-n{width:22px;height:22px;border-radius:50%;
+  background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.35);
+  color:var(--blue);font-size:.7rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#s4 .obj h3{font-size:.82rem;margin-bottom:.1rem}
+#s4 .obj p{font-size:.7rem}
+
+/* ─────────────────────────────
+   SLIDE 5 – TECNOLOGIA
+───────────────────────────── */
+#s5 .tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;
+  max-width:860px;width:100%;margin-top:1.3rem}
+#s5 .tech{background:var(--bg2);border:1px solid var(--bg3);border-radius:1rem;
+  padding:1.3rem;animation:fade-up .45s both}
+#s5 .tech:nth-child(1){animation-delay:.05s;border-top:3px solid var(--yellow)}
+#s5 .tech:nth-child(2){animation-delay:.17s;border-top:3px solid var(--blue)}
+#s5 .tech:nth-child(3){animation-delay:.29s;border-top:3px solid var(--green);
+  box-shadow:0 0 20px rgba(34,197,94,.12)}
+#s5 .tech h3{font-size:.95rem;margin:.55rem 0 .3rem}
+#s5 .tech .row{display:flex;gap:.4rem;margin:.25rem 0;font-size:.72rem;color:var(--muted)}
+#s5 .tech .row strong{color:var(--text);min-width:60px;flex-shrink:0}
+#s5 .tech .role{display:inline-block;margin-top:.6rem;font-size:.62rem;
+  font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:.2rem .65rem;border-radius:999px}
+#s5 .tech:nth-child(3) .role{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+#s5 .tech:nth-child(1) .role{background:rgba(234,179,8,.1);color:var(--yellow);border:1px solid rgba(234,179,8,.3)}
+#s5 .tech:nth-child(2) .role{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+
+/* ─────────────────────────────
+   SLIDE 6 – LINK BUDGET
+───────────────────────────── */
+
+/* ─────────────────────────────
+   SLIDE 7 – FRESNEL & MODULAÇÃO
+───────────────────────────── */
+#s7 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:2rem;
+  max-width:860px;width:100%;margin-top:1.2rem}
+#s7 .mod-table-wrap{overflow:hidden;border-radius:.75rem;border:1px solid var(--bg3)}
+
+/* ─────────────────────────────
+   SLIDE 8 – ARQUITECTURA
+───────────────────────────── */
+#s8 .arch-wrap{width:100%;max-width:860px;margin-top:.7rem}
+#s8 .legend{display:flex;gap:1.6rem;margin-top:.8rem;justify-content:center;flex-wrap:wrap}
+#s8 .lg{display:flex;align-items:center;gap:.4rem;font-size:.71rem;color:var(--muted)}
+#s8 .lg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* ─────────────────────────────
+   SLIDE 9 – ENERGIA & RESILIÊNCIA
+───────────────────────────── */
+#s9 .er-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.8rem;
+  max-width:860px;width:100%;margin-top:1.2rem}
+#s9 h3.section-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);margin-bottom:.6rem}
+
+/* ─────────────────────────────
+   SLIDE 10 – SIMULADOR
+───────────────────────────── */
+#s10{background:radial-gradient(ellipse at 50% 50%,rgba(22,163,74,.1) 0%,var(--bg) 70%)}
+
+/* ─────────────────────────────
+   SLIDE 11 – CUSTOS & CONCLUSÃO
+───────────────────────────── */
+#s11 .cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;
+  max-width:860px;width:100%;margin-top:1.2rem}
+#s11 .kpi{background:var(--bg2);border:1px solid var(--bg3);border-radius:.9rem;
+  padding:1rem 1.2rem;text-align:center;animation:fade-up .45s both}
+#s11 .kpi:nth-child(1){animation-delay:.05s;border-color:rgba(59,130,246,.35)}
+#s11 .kpi:nth-child(2){animation-delay:.15s;border-color:rgba(34,197,94,.35)}
+#s11 .kpi:nth-child(3){animation-delay:.25s;border-color:rgba(249,115,22,.35)}
+#s11 .kpi:nth-child(4){animation-delay:.35s;border-color:rgba(234,179,8,.35)}
+#s11 .kpi .knum{font-size:clamp(1.3rem,2.3vw,1.9rem);font-weight:800;line-height:1;margin-bottom:.25rem}
+#s11 .kpi p{font-size:.7rem}
+
+/* ─────────────────────────────
+   SLIDE 12 – AGRADECIMENTOS
+───────────────────────────── */
+#s12{background:radial-gradient(ellipse at 50% 30%,rgba(29,78,216,.2) 0%,var(--bg) 65%)}
+#s12 .wave-bg{position:absolute;inset:0;pointer-events:none;opacity:.12}
+#s12 h1{font-size:clamp(3.5rem,9vw,7rem);font-weight:900;letter-spacing:-.03em}
+#s12 .ag-m{display:flex;gap:2.5rem;margin-top:1.4rem;flex-wrap:wrap;justify-content:center}
+#s12 .m{text-align:center;font-size:.78rem}
+#s12 .m strong{display:block;color:var(--text);font-weight:600;font-size:.83rem}
+#s12 .m span{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<button class="arr" id="ap">&#8592;</button>
+<button class="arr" id="an">&#8594;</button>
+<div class="ctr" id="ctr">01 / 12</div>
+<div class="dots" id="dots"></div>
+
+<div class="deck">
+
+<!-- ═══ SLIDE 1 – CAPA ═══ -->
+<section class="slide active" id="s1">
+  <svg class="wave-bg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">
+    <circle cx="500" cy="80" r="4" fill="none" stroke="#3b82f6" stroke-width="1.2">
+      <animate attributeName="r" from="4" to="260" dur="3.2s" repeatCount="indefinite" begin="0s"/>
+      <animate attributeName="opacity" values=".7;0" dur="3.2s" repeatCount="indefinite" begin="0s"/>
+    </circle>
+    <circle cx="500" cy="80" r="4" fill="none" stroke="#3b82f6" stroke-width="1.2">
+      <animate attributeName="r" from="4" to="260" dur="3.2s" repeatCount="indefinite" begin="1.07s"/>
+      <animate attributeName="opacity" values=".7;0" dur="3.2s" repeatCount="indefinite" begin="1.07s"/>
+    </circle>
+    <circle cx="500" cy="80" r="4" fill="none" stroke="#3b82f6" stroke-width="1.2">
+      <animate attributeName="r" from="4" to="260" dur="3.2s" repeatCount="indefinite" begin="2.14s"/>
+      <animate attributeName="opacity" values=".7;0" dur="3.2s" repeatCount="indefinite" begin="2.14s"/>
+    </circle>
+  </svg>
+  <p class="inst">Instituto Superior de Ciências e Tecnologia de Moçambique</p>
+  <p class="cadeira">Licenciatura em Engenharia Informática &nbsp;·&nbsp; 3.º Ano, Turma A &nbsp;·&nbsp; Comunicação Móvel</p>
+  <span class="tag tag-b">Projecto Final</span>
+  <h1>Dimensionamento de uma Rede<br>Resiliente de Comunicação</h1>
+  <p class="sub">Interligação entre o Hospital Central de Maputo<br>e o Centro de Acomodação de Guaxene</p>
+  <div class="members">
+    <div class="mbr"><strong>Tatyana Ibrahim</strong><span>20240229</span></div>
+    <div class="mbr"><strong>Yannis Chilundo</strong><span>20220156</span></div>
+    <div class="mbr"><strong>Yasin Magno</strong><span>20240260</span></div>
+  </div>
+  <div class="footer">
+    <span>Docente: <strong>Roxan Cadir</strong></span>
+    <span>Maputo, Setembro de 2026</span>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 2 – CONTEXTO ═══ -->
+<section class="slide" id="s2">
+  <div class="spk spk-t">Tatyana</div>
+  <div class="rain-layer" id="rain"></div>
+  <span class="tag tag-o">Janeiro de 2026</span>
+  <h2>O que aconteceu nas redes de comunicação</h2>
+  <div class="stats">
+    <div class="sc">
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <rect x="15" y="24" width="10" height="14" rx="2" fill="#334155"/>
+        <line x1="20" y1="24" x2="20" y2="4" stroke="#ef4444" stroke-width="2"/>
+        <line x1="8" y1="10" x2="20" y2="4" stroke="#ef4444" stroke-width="2"/>
+        <line x1="32" y1="10" x2="20" y2="4" stroke="#ef4444" stroke-width="2"/>
+        <line x1="4" y1="4" x2="16" y2="16" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="16" y1="4" x2="4" y2="16" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <p class="snum cr">100s</p>
+      <h3>BTS fora de serviço</h3>
+      <p>A nível nacional</p>
+    </div>
+    <div class="sc">
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <path d="M6 19 Q20 6 34 19" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M6 19 Q6 31 20 33 Q34 31 34 19" fill="rgba(59,130,246,.12)" stroke="#3b82f6" stroke-width="2"/>
+        <line x1="14" y1="35" x2="12" y2="40" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+        <line x1="20" y1="36" x2="20" y2="41" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+        <line x1="26" y1="35" x2="28" y2="40" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p class="snum cb">Cheias</p>
+      <h3>Cortes de energia e danos</h3>
+      <p>Infra-estruturas atingidas</p>
+    </div>
+    <div class="sc">
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <rect x="15" y="12" width="10" height="8" rx="2" fill="rgba(34,197,94,.15)" stroke="#22c55e" stroke-width="1.5"/>
+        <rect x="4" y="9" width="9" height="5" rx="1" fill="rgba(34,197,94,.2)" stroke="#22c55e" stroke-width="1"/>
+        <rect x="27" y="9" width="9" height="5" rx="1" fill="rgba(34,197,94,.2)" stroke="#22c55e" stroke-width="1"/>
+        <line x1="15" y1="16" x2="13" y2="16" stroke="#22c55e" stroke-width="1"/>
+        <line x1="25" y1="16" x2="27" y2="16" stroke="#22c55e" stroke-width="1"/>
+        <line x1="20" y1="20" x2="20" y2="28" stroke="#22c55e" stroke-width="1.5"/>
+        <line x1="8" y1="28" x2="32" y2="28" stroke="#22c55e" stroke-width="1.5"/>
+        <path d="M12,28 L12,35 M20,28 L20,35 M28,28 L28,35" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <p class="snum cg">INCM</p>
+      <h3>Satélite de emergência activado</h3>
+      <p>Em centros operativos críticos</p>
+    </div>
+  </div>
+  <div class="quote">
+    "INCM acompanha impacto da época chuvosa nas telecomunicações e reforça medidas de mitigação"<br>
+    <em style="color:var(--blue);font-style:normal">— INCM, 28 Janeiro 2026</em>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 3 – CENÁRIO ═══ -->
+<section class="slide" id="s3">
+  <div class="spk spk-t">Tatyana</div>
+  <span class="tag tag-b">Cenário</span>
+  <h2>Os dois pontos que nos motivaram</h2>
+
+  <div class="geo-wrap">
+    <!-- Stylized geographic SVG -->
+    <svg class="geo-svg" width="380" height="240" viewBox="0 0 380 240">
+      <!-- Background -->
+      <rect width="380" height="240" rx="12" fill="#0f172a"/>
+
+      <!-- Water (Baía de Maputo) -->
+      <path d="M0,60 Q60,55 120,70 Q180,80 200,120 Q210,150 200,200 Q160,210 120,220 Q80,230 40,235 L0,240 Z"
+        fill="rgba(30,80,160,.35)" stroke="rgba(59,130,246,.3)" stroke-width="1"/>
+      <path d="M380,0 Q350,10 320,30 Q280,60 260,90 Q240,120 250,160 Q260,195 280,220 Q320,235 380,240 Z"
+        fill="rgba(30,80,160,.2)" stroke="rgba(59,130,246,.2)" stroke-width="1"/>
+
+      <!-- Water area (center) -->
+      <ellipse cx="200" cy="130" rx="120" ry="70" fill="rgba(30,100,180,.25)" stroke="rgba(59,130,246,.2)" stroke-width="1"/>
+      <text x="200" y="134" text-anchor="middle" fill="rgba(148,163,184,.5)"
+        font-size="10" font-family="system-ui" font-style="italic">Baía de Maputo</text>
+
+      <!-- Link line (dashed, animated) -->
+      <line x1="105" y1="75" x2="285" y2="175"
+        stroke="#22c55e" stroke-width="2" stroke-dasharray="8 5">
+        <animate attributeName="stroke-dashoffset" from="0" to="-13" dur=".9s" repeatCount="indefinite"/>
+      </line>
+
+      <!-- Distance label on link -->
+      <g transform="translate(195,120) rotate(-28)">
+        <rect x="-28" y="-9" width="56" height="16" rx="4"
+          fill="rgba(15,23,42,.85)" stroke="rgba(34,197,94,.35)" stroke-width="1"/>
+        <text x="0" y="4.5" text-anchor="middle" fill="#22c55e"
+          font-size="8.5" font-family="system-ui" font-weight="700">3,69 km</text>
+      </g>
+
+      <!-- HCM Node -->
+      <circle cx="105" cy="75" r="22"
+        fill="rgba(29,78,216,.2)" stroke="#3b82f6" stroke-width="2"/>
+      <circle cx="105" cy="75" r="22" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0">
+        <animate attributeName="r" from="22" to="35" dur="2.3s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".45;0" dur="2.3s" repeatCount="indefinite"/>
+      </circle>
+      <line x1="105" y1="65" x2="105" y2="85" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+      <line x1="95" y1="75" x2="115" y2="75" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+
+      <rect x="58" y="103" width="94" height="26" rx="5"
+        fill="rgba(15,23,42,.8)" stroke="rgba(59,130,246,.3)" stroke-width="1"/>
+      <text x="105" y="114" text-anchor="middle" fill="#f1f5f9"
+        font-size="8.5" font-family="system-ui" font-weight="700">Hospital Central</text>
+      <text x="105" y="125" text-anchor="middle" fill="#94a3b8"
+        font-size="7.5" font-family="system-ui">Ponto A · Maputo</text>
+
+      <!-- Guaxene Node -->
+      <circle cx="285" cy="175" r="22"
+        fill="rgba(22,163,74,.15)" stroke="#22c55e" stroke-width="2"/>
+      <circle cx="285" cy="175" r="22" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0">
+        <animate attributeName="r" from="22" to="35" dur="2.3s" begin="1.15s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".45;0" dur="2.3s" begin="1.15s" repeatCount="indefinite"/>
+      </circle>
+      <polygon points="285,162 295,172 275,172" fill="none" stroke="#22c55e" stroke-width="2"/>
+      <rect x="277" y="172" width="16" height="10" rx="1" fill="none" stroke="#22c55e" stroke-width="1.8"/>
+      <rect x="281" y="175" width="8" height="7" rx="1" fill="rgba(34,197,94,.25)"/>
+
+      <rect x="231" y="202" width="108" height="26" rx="5"
+        fill="rgba(15,23,42,.8)" stroke="rgba(34,197,94,.3)" stroke-width="1"/>
+      <text x="285" y="213" text-anchor="middle" fill="#f1f5f9"
+        font-size="8.5" font-family="system-ui" font-weight="700">Escola de Guaxene</text>
+      <text x="285" y="224" text-anchor="middle" fill="#94a3b8"
+        font-size="7.5" font-family="system-ui">Ponto B · KaTembe</text>
+    </svg>
+
+    <div class="geo-info">
+      <div class="geo-pt">
+        <h3 class="cb">Ponto A — Hospital Central de Maputo</h3>
+        <p>Principal infra-estrutura de saúde do país. Precisa de coordenar com centros de apoio em emergência.</p>
+      </div>
+      <div class="geo-pt">
+        <h3 class="cg">Ponto B — Escola Primária de Guaxene, KaTembe</h3>
+        <p>Usada como centro de acomodação em Janeiro de 2026 durante as inundações.</p>
+      </div>
+      <div class="dist-note">
+        <strong>3,69 km</strong> em linha recta · Baía de Maputo no meio<br>
+        <span style="font-size:.68rem">Pela estrada: ~13 km — o rádio viaja em linha recta</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 4 – OBJECTIVOS ═══ -->
+<section class="slide" id="s4">
+  <div class="spk spk-t">Tatyana</div>
+  <span class="tag tag-b">Objectivos</span>
+  <h2>O que nos propusemos garantir</h2>
+
+  <div class="obj-grid">
+    <div class="obj">
+      <div class="obj-n">1</div>
+      <div>
+        <h3>Caracterizar o enlace</h3>
+        <p>Tráfego crítico: voz, vídeo, dados de saúde e alertas</p>
+      </div>
+    </div>
+    <div class="obj">
+      <div class="obj-n">2</div>
+      <div>
+        <h3>Comparar tecnologias</h3>
+        <p>Celular, satélite e rádio ponto-a-ponto — justificar o meio principal</p>
+      </div>
+    </div>
+    <div class="obj">
+      <div class="obj-n">3</div>
+      <div>
+        <h3>Dimensionar o enlace rádio</h3>
+        <p>Frequência, antenas, EIRP, perdas, potência recebida e margem</p>
+      </div>
+    </div>
+    <div class="obj">
+      <div class="obj-n">4</div>
+      <div>
+        <h3>Linha de visada e Fresnel</h3>
+        <p>Analisar a geometria da propagação e a desobstrução mínima</p>
+      </div>
+    </div>
+    <div class="obj">
+      <div class="obj-n">5</div>
+      <div>
+        <h3 class="cg">72 horas de autonomia energética</h3>
+        <p>Solar + bateria — sem depender da EDM</p>
+      </div>
+    </div>
+    <div class="obj">
+      <div class="obj-n">6</div>
+      <div>
+        <h3>Redundância, segurança e QoS</h3>
+        <p>Failover, VPN, AES-256 e prioridade de tráfego</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 5 – TECNOLOGIA ═══ -->
+<section class="slide" id="s5">
+  <div class="spk spk-y">Yannis</div>
+  <span class="tag tag-g">Tecnologia</span>
+  <h2>3 Meios, 3 Papéis</h2>
+
+  <div class="tech-grid">
+    <!-- 4G/5G -->
+    <div class="tech">
+      <svg width="38" height="38" viewBox="0 0 38 38">
+        <rect x="14" y="22" width="10" height="14" rx="2" fill="#334155"/>
+        <line x1="19" y1="22" x2="19" y2="4" stroke="#eab308" stroke-width="2"/>
+        <line x1="8" y1="10" x2="19" y2="4" stroke="#eab308" stroke-width="1.8"/>
+        <line x1="30" y1="10" x2="19" y2="4" stroke="#eab308" stroke-width="1.8"/>
+        <path d="M6,15 Q6,8 13,8" fill="none" stroke="#eab308" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M4,18 Q4,4 15,4" fill="none" stroke="#eab308" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+      </svg>
+      <h3 class="cy">4G / 5G</h3>
+      <div class="row"><strong>Vantagem:</strong>Já existe, activação rápida</div>
+      <div class="row"><strong>Limitação:</strong>Depende de BTS e operadora — falhou em Jan 2026</div>
+      <span class="role">Redundância</span>
+    </div>
+
+    <!-- Satélite -->
+    <div class="tech">
+      <svg width="38" height="38" viewBox="0 0 38 38">
+        <rect x="14" y="14" width="10" height="7" rx="2" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+        <rect x="3" y="12" width="9" height="5" rx="1" fill="rgba(59,130,246,.2)" stroke="#3b82f6" stroke-width="1"/>
+        <rect x="26" y="12" width="9" height="5" rx="1" fill="rgba(59,130,246,.2)" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="14" y1="17" x2="12" y2="17" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="24" y1="17" x2="26" y2="17" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="19" y1="21" x2="19" y2="30" stroke="#3b82f6" stroke-width="1.5"/>
+        <path d="M10,30 Q12,24 19,28 Q26,24 28,30" fill="rgba(59,130,246,.1)" stroke="#3b82f6" stroke-width="1.5"/>
+      </svg>
+      <h3 class="cb">Satélite</h3>
+      <div class="row"><strong>Vantagem:</strong>Independente da infra-estrutura terrestre</div>
+      <div class="row"><strong>Limitação:</strong>Mais caro, maior consumo e latência</div>
+      <span class="role">Contingência</span>
+    </div>
+
+    <!-- PtP (highlighted) -->
+    <div class="tech">
+      <svg width="38" height="38" viewBox="0 0 38 38">
+        <circle cx="7" cy="19" r="5" fill="rgba(34,197,94,.15)" stroke="#22c55e" stroke-width="1.8"/>
+        <circle cx="31" cy="19" r="5" fill="rgba(34,197,94,.15)" stroke="#22c55e" stroke-width="1.8"/>
+        <line x1="12" y1="19" x2="26" y2="19" stroke="#22c55e" stroke-width="2" stroke-dasharray="4 3">
+          <animate attributeName="stroke-dashoffset" from="0" to="-7" dur=".7s" repeatCount="indefinite"/>
+        </line>
+        <path d="M3,14 Q3,8 7,8" fill="none" stroke="#22c55e" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M1,19 Q1,4 7,4" fill="none" stroke="#22c55e" stroke-width="1.3" stroke-linecap="round" opacity=".5"/>
+        <path d="M35,14 Q35,8 31,8" fill="none" stroke="#22c55e" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M37,19 Q37,4 31,4" fill="none" stroke="#22c55e" stroke-width="1.3" stroke-linecap="round" opacity=".5"/>
+      </svg>
+      <h3 class="cg">Rádio PtP ★</h3>
+      <div class="row"><strong>Vantagem:</strong>Ligação directa, baixa latência, controlo próprio</div>
+      <div class="row"><strong>Exige:</strong>Linha de visada desobstruída</div>
+      <span class="role">Principal</span>
+    </div>
+  </div>
+
+  <p style="margin-top:1.1rem;font-size:.77rem;text-align:center;max-width:680px">
+    Equipamento de referência: <strong style="color:var(--text)">Ubiquiti airFiber AF-5XHD</strong>
+    — modulation adaptativa, AES-256, antenas de 34 dBi.
+  </p>
+</section>
+
+<!-- ═══ SLIDE 6 – ORÇAMENTO DO ENLACE ═══ -->
+<section class="slide" id="s6">
+  <div class="spk spk-y">Yannis</div>
+  <span class="tag tag-g">Dimensionamento</span>
+  <h2>Orçamento do Enlace</h2>
+
+  <div class="metric-grid">
+    <div class="metric" style="border-top:3px solid var(--blue)">
+      <div class="mlabel">Frequência</div>
+      <div class="mnum cb">5,8 GHz</div>
+      <div class="msub">λ = 5,17 cm &nbsp;·&nbsp; Canal 20 MHz</div>
+    </div>
+    <div class="metric" style="border-top:3px solid var(--orange)">
+      <div class="mlabel">Perda em Espaço Livre</div>
+      <div class="mnum co">119 dB</div>
+      <div class="msub">FSPL a 3,69 km e 5,8 GHz</div>
+    </div>
+    <div class="metric" style="border-top:3px solid var(--yellow)">
+      <div class="mlabel">EIRP (premissa)</div>
+      <div class="mnum cy">36 dBm</div>
+      <div class="msub">3 dBm &nbsp;+&nbsp; 34 dBi &nbsp;−&nbsp; 1 dB</div>
+    </div>
+    <div class="metric" style="border-top:3px solid var(--green)">
+      <div class="mlabel">Potência Recebida</div>
+      <div class="mnum cg">−51 dBm</div>
+      <div class="msub">36 − 119 + 34 − 2 = −51 dBm</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:1.5rem;margin-top:1.3rem;
+    background:var(--bg2);border:1px solid var(--bg3);border-radius:.8rem;
+    padding:.9rem 1.4rem;max-width:880px;width:100%">
+    <svg width="28" height="28" viewBox="0 0 28 28" style="flex-shrink:0">
+      <circle cx="14" cy="14" r="12" fill="rgba(34,197,94,.1)" stroke="#22c55e" stroke-width="1.5"/>
+      <line x1="14" y1="7" x2="14" y2="14" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="14" cy="18" r="1.5" fill="#22c55e"/>
+    </svg>
+    <p style="font-size:.77rem;color:var(--muted)">
+      Capacidade mínima exigida: <strong style="color:var(--text)">15 Mbps</strong>
+      &nbsp;(voz + vídeo + dados de saúde + alertas)
+      &nbsp;·&nbsp; Meta normal: <strong style="color:var(--text)">&gt;50 Mbps</strong>
+    </p>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 7 – FRESNEL & MODULAÇÃO ═══ -->
+<section class="slide" id="s7">
+  <div class="spk spk-y">Yannis</div>
+  <span class="tag tag-g">Fresnel &amp; Modulação</span>
+  <h2>Linha de Visada e Margem do Enlace</h2>
+
+  <div class="two-col">
+    <!-- Fresnel SVG -->
+    <div>
+      <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.7rem">1ª Zona de Fresnel</p>
+      <svg width="100%" height="170" viewBox="0 0 380 170">
+        <!-- Background -->
+        <rect width="380" height="170" rx="8" fill="#1e293b"/>
+
+        <!-- Ground line bottom -->
+        <line x1="0" y1="140" x2="380" y2="140" stroke="#334155" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="10" y="154" fill="#475569" font-size="9" font-family="system-ui">Solo</text>
+
+        <!-- Fresnel ellipse (orange) -->
+        <ellipse cx="190" cy="90" rx="160" ry="34"
+          fill="rgba(249,115,22,.08)" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 3"/>
+
+        <!-- 60% Fresnel zone (inner, green fill) -->
+        <ellipse cx="190" cy="90" rx="160" ry="20"
+          fill="rgba(34,197,94,.07)" stroke="#22c55e" stroke-width="1.2" stroke-dasharray="4 3"/>
+
+        <!-- LOS line -->
+        <line x1="10" y1="90" x2="370" y2="90"
+          stroke="#22c55e" stroke-width="2" stroke-dasharray="8 4">
+          <animate attributeName="stroke-dashoffset" from="0" to="-12" dur=".8s" repeatCount="indefinite"/>
+        </line>
+
+        <!-- HCM antenna -->
+        <line x1="20" y1="140" x2="20" y2="62" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="20" cy="60" r="6" fill="rgba(29,78,216,.2)" stroke="#3b82f6" stroke-width="1.8"/>
+        <text x="20" y="155" text-anchor="middle" fill="#3b82f6" font-size="8" font-family="system-ui">HCM</text>
+
+        <!-- Guaxene antenna -->
+        <line x1="360" y1="140" x2="360" y2="62" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="360" cy="60" r="6" fill="rgba(22,163,74,.2)" stroke="#22c55e" stroke-width="1.8"/>
+        <text x="360" y="155" text-anchor="middle" fill="#22c55e" font-size="8" font-family="system-ui">Guaxene</text>
+
+        <!-- F1 dimension arrow (vertical at midpoint) -->
+        <line x1="190" y1="56" x2="190" y2="124"
+          stroke="#f97316" stroke-width="1" stroke-dasharray="2 2" opacity=".8"/>
+        <text x="197" y="76" fill="#f97316" font-size="9.5" font-family="system-ui" font-weight="700">F₁ = 6,91 m</text>
+        <text x="197" y="105" fill="#22c55e" font-size="9" font-family="system-ui">60% = 4,14 m ✓</text>
+        <line x1="186" y1="56" x2="194" y2="56" stroke="#f97316" stroke-width="1"/>
+        <line x1="186" y1="124" x2="194" y2="124" stroke="#f97316" stroke-width="1"/>
+
+        <!-- Curvature note -->
+        <text x="190" y="133" text-anchor="middle" fill="#475569" font-size="8" font-family="system-ui">Curvatura terrestre: +0,20 m</text>
+      </svg>
+    </div>
+
+    <!-- Modulation table -->
+    <div>
+      <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.7rem">Modulação Adaptativa &amp; Margem</p>
+      <div class="mod-table-wrap">
+        <table class="gtable" style="width:100%">
+          <thead>
+            <tr>
+              <th>Modulação</th>
+              <th>Margem</th>
+              <th>Capacidade</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="hl">
+              <td>QPSK MIMO</td>
+              <td><strong class="cg">33,95 dB</strong></td>
+              <td><strong class="cg">~24 Mbps</strong></td>
+            </tr>
+            <tr>
+              <td>16-QAM</td>
+              <td>29,95 dB</td>
+              <td>~48 Mbps</td>
+            </tr>
+            <tr>
+              <td>64-QAM</td>
+              <td>23,95 dB</td>
+              <td>~72 Mbps</td>
+            </tr>
+            <tr>
+              <td>256-QAM</td>
+              <td>17,95 dB</td>
+              <td>~96 Mbps</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:.75rem;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.25);
+        border-radius:.6rem;padding:.6rem .85rem;font-size:.74rem;color:var(--muted)">
+        ★ Em QPSK: <strong style="color:var(--green)">24 Mbps &gt; 15 Mbps</strong> mínimo —
+        a capacidade baixa antes de a comunicação se perder.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 8 – ARQUITECTURA ═══ -->
+<section class="slide" id="s8">
+  <div class="spk spk-a">Yasin</div>
+  <span class="tag tag-g">Arquitectura</span>
+  <h2>Solução em 3 Camadas</h2>
+
+  <div class="arch-wrap">
+    <svg width="100%" height="auto" viewBox="0 0 860 252" xmlns="http://www.w3.org/2000/svg">
+      <!-- SATELLITE -->
+      <g transform="translate(430,26)">
+        <rect x="-13" y="-8" width="26" height="16" rx="3"
+          fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="1.5"/>
+        <rect x="-32" y="-5" width="17" height="10" rx="1"
+          fill="rgba(59,130,246,.2)" stroke="#3b82f6" stroke-width="1"/>
+        <rect x="15" y="-5" width="17" height="10" rx="1"
+          fill="rgba(59,130,246,.2)" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="-13" y1="0" x2="-32" y2="0" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="13" y1="0" x2="32" y2="0" stroke="#3b82f6" stroke-width="1"/>
+        <circle cx="0" cy="0" r="3.5" fill="#3b82f6"/>
+        <text x="0" y="22" text-anchor="middle" fill="#3b82f6"
+          font-size="9" font-family="system-ui" font-weight="600">Satélite</text>
+      </g>
+      <!-- Satellite arcs -->
+      <path d="M172,156 C172,58 300,26 430,26"
+        fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="7 5" opacity=".6">
+        <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="2.2s" repeatCount="indefinite"/>
+      </path>
+      <path d="M430,26 C560,26 688,58 688,156"
+        fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="7 5" opacity=".4">
+        <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="2.2s" repeatCount="indefinite"/>
+      </path>
+      <!-- 4G tower -->
+      <g transform="translate(430,193)">
+        <rect x="-5" y="8" width="10" height="18" rx="2" fill="#334155"/>
+        <line x1="0" y1="8" x2="0" y2="-6" stroke="#eab308" stroke-width="2"/>
+        <line x1="-11" y1="0" x2="0" y2="-6" stroke="#eab308" stroke-width="1.5"/>
+        <line x1="11" y1="0" x2="0" y2="-6" stroke="#eab308" stroke-width="1.5"/>
+        <text x="0" y="36" text-anchor="middle" fill="#eab308"
+          font-size="8.5" font-family="system-ui" font-weight="600">4G / 5G</text>
+      </g>
+      <!-- 4G paths -->
+      <path d="M200,163 Q315,215 426,199"
+        fill="none" stroke="#eab308" stroke-width="1.5" stroke-dasharray="5 5" opacity=".75">
+        <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="1.7s" repeatCount="indefinite"/>
+      </path>
+      <path d="M434,199 Q545,215 660,163"
+        fill="none" stroke="#eab308" stroke-width="1.5" stroke-dasharray="5 5" opacity=".75">
+        <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="1.7s" repeatCount="indefinite"/>
+      </path>
+      <!-- PtP label and line -->
+      <text x="430" y="145" text-anchor="middle" fill="#22c55e"
+        font-size="9.5" font-family="system-ui" font-weight="700">◀ PtP · 5,8 GHz · 3,69 km ▶</text>
+      <line x1="200" y1="156" x2="660" y2="156"
+        stroke="#22c55e" stroke-width="2.5" stroke-dasharray="12 6">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur=".9s" repeatCount="indefinite"/>
+      </line>
+      <!-- HCM node -->
+      <circle cx="172" cy="156" r="30"
+        fill="rgba(29,78,216,.14)" stroke="#3b82f6" stroke-width="2"/>
+      <circle cx="172" cy="156" r="30" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0">
+        <animate attributeName="r" from="30" to="46" dur="2.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".45;0" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
+      <line x1="172" y1="145" x2="172" y2="167" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+      <line x1="161" y1="156" x2="183" y2="156" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+      <text x="172" y="199" text-anchor="middle" fill="#f1f5f9" font-size="10.5" font-family="system-ui" font-weight="600">HCM</text>
+      <text x="172" y="211" text-anchor="middle" fill="#94a3b8" font-size="8.5" font-family="system-ui">Hospital Central</text>
+      <!-- HCM energy -->
+      <g transform="translate(118,225)"><rect x="0" y="0" width="19" height="13" rx="2" fill="rgba(234,179,8,.18)" stroke="#eab308" stroke-width="1"/><line x1="6.3" y1="0" x2="6.3" y2="13" stroke="#eab308" stroke-width=".7" opacity=".6"/><line x1="12.7" y1="0" x2="12.7" y2="13" stroke="#eab308" stroke-width=".7" opacity=".6"/><line x1="0" y1="4.3" x2="19" y2="4.3" stroke="#eab308" stroke-width=".7" opacity=".6"/><line x1="0" y1="8.7" x2="19" y2="8.7" stroke="#eab308" stroke-width=".7" opacity=".6"/><text x="9.5" y="23" text-anchor="middle" fill="#eab308" font-size="7.5">Solar</text></g>
+      <g transform="translate(148,225)"><rect x="0" y="2" width="19" height="10" rx="2" fill="rgba(34,197,94,.1)" stroke="#22c55e" stroke-width="1"/><rect x="19" y="4" width="3" height="6" rx="1" fill="#22c55e"/><rect x="2" y="4" width="11" height="6" rx="1" fill="rgba(34,197,94,.4)"/><text x="9.5" y="23" text-anchor="middle" fill="#22c55e" font-size="7.5">72 h</text></g>
+      <!-- Guaxene node -->
+      <circle cx="688" cy="156" r="30"
+        fill="rgba(22,163,74,.12)" stroke="#22c55e" stroke-width="2"/>
+      <circle cx="688" cy="156" r="30" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0">
+        <animate attributeName="r" from="30" to="46" dur="2.4s" begin="1.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".45;0" dur="2.4s" begin="1.2s" repeatCount="indefinite"/>
+      </circle>
+      <polygon points="688,141 700,153 676,153" fill="none" stroke="#22c55e" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="679" y="153" width="18" height="11" rx="1" fill="none" stroke="#22c55e" stroke-width="1.8"/>
+      <rect x="684" y="156" width="8" height="8" rx="1" fill="rgba(34,197,94,.25)"/>
+      <text x="688" y="199" text-anchor="middle" fill="#f1f5f9" font-size="10.5" font-family="system-ui" font-weight="600">Guaxene</text>
+      <text x="688" y="211" text-anchor="middle" fill="#94a3b8" font-size="8.5" font-family="system-ui">Centro Acomodação</text>
+      <!-- Guaxene energy -->
+      <g transform="translate(655,225)"><rect x="0" y="0" width="19" height="13" rx="2" fill="rgba(234,179,8,.18)" stroke="#eab308" stroke-width="1"/><line x1="6.3" y1="0" x2="6.3" y2="13" stroke="#eab308" stroke-width=".7" opacity=".6"/><line x1="12.7" y1="0" x2="12.7" y2="13" stroke="#eab308" stroke-width=".7" opacity=".6"/><line x1="0" y1="4.3" x2="19" y2="4.3" stroke="#eab308" stroke-width=".7" opacity=".6"/><line x1="0" y1="8.7" x2="19" y2="8.7" stroke="#eab308" stroke-width=".7" opacity=".6"/><text x="9.5" y="23" text-anchor="middle" fill="#eab308" font-size="7.5">Solar</text></g>
+      <g transform="translate(685,225)"><rect x="0" y="2" width="19" height="10" rx="2" fill="rgba(34,197,94,.1)" stroke="#22c55e" stroke-width="1"/><rect x="19" y="4" width="3" height="6" rx="1" fill="#22c55e"/><rect x="2" y="4" width="11" height="6" rx="1" fill="rgba(34,197,94,.4)"/><text x="9.5" y="23" text-anchor="middle" fill="#22c55e" font-size="7.5">72 h</text></g>
+    </svg>
+    <div class="legend">
+      <div class="lg"><div class="lg-dot" style="background:#22c55e"></div>Rádio PtP — via principal</div>
+      <div class="lg"><div class="lg-dot" style="background:#eab308"></div>4G/5G — redundância</div>
+      <div class="lg"><div class="lg-dot" style="background:#3b82f6"></div>Satélite — contingência externa</div>
+      <div class="lg"><div class="lg-dot" style="background:#eab308;opacity:.7"></div>Solar + Bateria 72h</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 9 – ENERGIA & RESILIÊNCIA ═══ -->
+<section class="slide" id="s9">
+  <div class="spk spk-a">Yasin</div>
+  <span class="tag tag-g">Energia &amp; Resiliência</span>
+  <h2>Autonomia e Cenários de Falha</h2>
+
+  <div class="er-grid">
+    <!-- Energia -->
+    <div>
+      <h3 class="section-title">Dimensionamento energético (72h mínimo)</h3>
+      <table class="gtable">
+        <thead>
+          <tr><th>Local</th><th>Carga</th><th>Bateria</th><th>Solar</th><th>Autonomia</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="cb" style="font-weight:600">HCM</td>
+            <td>~100 W</td>
+            <td>12 kWh</td>
+            <td>0,8–1 kWp</td>
+            <td class="cg" style="font-weight:600">86,4 h ✓</td>
+          </tr>
+          <tr>
+            <td class="cg" style="font-weight:600">Guaxene</td>
+            <td>~30 W</td>
+            <td>3,6 kWh</td>
+            <td>0,3–0,4 kWp</td>
+            <td class="cg" style="font-weight:600">86,4 h ✓</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:.6rem;font-size:.71rem">
+        Bateria garante autonomia; solar prolonga e recarrega. Não dependemos de sol durante tempestade.
+      </p>
+    </div>
+
+    <!-- Resiliência -->
+    <div>
+      <h3 class="section-title">Estudo de resiliência — cenários</h3>
+      <table class="gtable">
+        <thead>
+          <tr><th>Cenário</th><th>Caminho activo</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          <tr class="hl">
+            <td>Normal</td>
+            <td>PtP + acesso externo</td>
+            <td class="cg">Normal</td>
+          </tr>
+          <tr>
+            <td>PtP falha</td>
+            <td>4G/5G</td>
+            <td class="cy">Degradado</td>
+          </tr>
+          <tr>
+            <td>4G/5G falha</td>
+            <td>PtP</td>
+            <td class="cb">Preservado</td>
+          </tr>
+          <tr>
+            <td>Sem energia (EDM)</td>
+            <td>PtP + bateria</td>
+            <td class="co">Emergência</td>
+          </tr>
+          <tr>
+            <td>PtP + 4G em baixo</td>
+            <td>Nenhum directo</td>
+            <td class="cr">Crítico</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:.6rem;font-size:.71rem">
+        Nenhuma falha <em>simples</em> corta a comunicação.
+        Estado Crítico exige terminal portátil local em Guaxene.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 10 – SIMULADOR ═══ -->
+<section class="slide" id="s10">
+  <div class="spk spk-y">Yannis</div>
+  <span class="tag tag-g">Demo ao Vivo</span>
+  <h2>Construímos um Simulador</h2>
+  <p style="text-align:center;max-width:560px;margin-top:.4rem">
+    Todos os cálculos do relatório em tempo real — estados de rede,
+    chuva, failover, energia e vista 3D sobre a Baía de Maputo.
+  </p>
+
+  <svg width="320" height="158" viewBox="0 0 320 158" style="margin:1.5rem 0;
+    border:1px solid var(--bg3);border-radius:.8rem;overflow:visible">
+    <rect width="320" height="158" rx="10" fill="#1e293b"/>
+    <rect width="320" height="30" rx="10" fill="rgba(59,130,246,.07)"/>
+    <rect x="0" y="20" width="320" height="10" fill="rgba(59,130,246,.07)"/>
+    <circle cx="14" cy="15" r="5" fill="#ef4444" opacity=".7"/>
+    <circle cx="28" cy="15" r="5" fill="#eab308" opacity=".7"/>
+    <circle cx="42" cy="15" r="5" fill="#22c55e" opacity=".7"/>
+    <text x="160" y="19" text-anchor="middle" fill="#94a3b8"
+      font-size="8" font-family="system-ui">Simulador — HCM ↔ Guaxene</text>
+    <circle cx="65" cy="93" r="22" fill="rgba(29,78,216,.14)" stroke="#3b82f6" stroke-width="1.5"/>
+    <circle cx="65" cy="93" r="22" fill="none" stroke="#3b82f6" stroke-width="1.2" opacity="0">
+      <animate attributeName="r" from="22" to="33" dur="2.3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values=".5;0" dur="2.3s" repeatCount="indefinite"/>
+    </circle>
+    <line x1="65" y1="84" x2="65" y2="102" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="56" y1="93" x2="74" y2="93" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="65" y="124" text-anchor="middle" fill="#94a3b8" font-size="7.5" font-family="system-ui">HCM</text>
+    <circle cx="255" cy="93" r="22" fill="rgba(22,163,74,.12)" stroke="#22c55e" stroke-width="1.5"/>
+    <circle cx="255" cy="93" r="22" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0">
+      <animate attributeName="r" from="22" to="33" dur="2.3s" begin="1.1s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values=".5;0" dur="2.3s" begin="1.1s" repeatCount="indefinite"/>
+    </circle>
+    <polygon points="255,78 265,89 245,89" fill="none" stroke="#22c55e" stroke-width="1.8"/>
+    <rect x="247" y="89" width="16" height="10" rx="1" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="255" y="124" text-anchor="middle" fill="#94a3b8" font-size="7.5" font-family="system-ui">Guaxene</text>
+    <line x1="87" y1="93" x2="233" y2="93" stroke="#22c55e" stroke-width="2" stroke-dasharray="9 5">
+      <animate attributeName="stroke-dashoffset" from="0" to="-14" dur=".75s" repeatCount="indefinite"/>
+    </line>
+    <text x="160" y="87" text-anchor="middle" fill="#22c55e"
+      font-size="7" font-family="system-ui" font-weight="700">PtP ACTIVO</text>
+    <rect x="10" y="138" width="52" height="13" rx="4"
+      fill="rgba(34,197,94,.14)" stroke="rgba(34,197,94,.3)" stroke-width=".8"/>
+    <text x="36" y="148" text-anchor="middle" fill="#22c55e"
+      font-size="7" font-family="system-ui" font-weight="600">NORMAL</text>
+    <rect x="68" y="138" width="82" height="13" rx="4"
+      fill="rgba(59,130,246,.1)" stroke="rgba(59,130,246,.25)" stroke-width=".8"/>
+    <text x="109" y="148" text-anchor="middle" fill="#3b82f6"
+      font-size="7" font-family="system-ui">http://localhost:3000</text>
+  </svg>
+
+  <p style="font-size:.8rem;text-align:center">
+    Vamos ao simulador agora →
+  </p>
+  <svg width="50" height="26" viewBox="0 0 50 26"
+    style="margin-top:.5rem;animation:float 2s ease-in-out infinite">
+    <path d="M5,13 L40,13 M30,6 L40,13 L30,20"
+      fill="none" stroke="#22c55e" stroke-width="2.5"
+      stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</section>
+
+<!-- ═══ SLIDE 11 – CUSTOS & CONCLUSÃO ═══ -->
+<section class="slide" id="s11">
+  <div class="spk spk-t">Tatyana</div>
+  <span class="tag tag-b">Custos &amp; Conclusão</span>
+  <h2>Em números</h2>
+
+  <div class="cc-grid">
+    <!-- Cost breakdown -->
+    <div>
+      <h3 style="font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.7rem">Custo estimado (faixa académica)</h3>
+      <table class="gtable" style="width:100%">
+        <thead><tr><th>Componente</th><th>USD</th></tr></thead>
+        <tbody>
+          <tr><td>Par de rádios PtP + antenas</td><td>1.500–2.500</td></tr>
+          <tr><td>Routers, switches e protecção</td><td>800–1.300</td></tr>
+          <tr><td>Energia HCM (bateria + solar)</td><td>3.000–4.500</td></tr>
+          <tr><td>Energia Guaxene</td><td>1.000–1.600</td></tr>
+          <tr><td>Terminal satélite</td><td>1.000–2.500</td></tr>
+          <tr><td>Mastros, instalação e acessórios</td><td>1.200–2.000</td></tr>
+          <tr style="background:rgba(34,197,94,.06)">
+            <td style="font-weight:700;color:var(--text)">Total</td>
+            <td style="font-weight:700;color:var(--green)">8.500–14.400</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:.6rem;font-size:.71rem">
+        Pode ser replicado noutros hospitais, escolas e centros de acomodação.
+      </p>
+    </div>
+
+    <!-- 4 key numbers -->
+    <div>
+      <h3 style="font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.7rem">4 números que resumem o projecto</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div class="kpi">
+          <div class="knum cb">−51 dBm</div>
+          <p>Potência recebida<br>a 3,69 km e 5,8 GHz</p>
+        </div>
+        <div class="kpi">
+          <div class="knum cg">34 dB</div>
+          <p>Margem em QPSK<br>(modo mais robusto)</p>
+        </div>
+        <div class="kpi">
+          <div class="knum co">24 Mbps</div>
+          <p>Capacidade em QPSK<br>&gt; 15 Mbps mínimo ✓</p>
+        </div>
+        <div class="kpi">
+          <div class="knum cy">72 h</div>
+          <p>Autonomia energética<br>sem EDM (86,4 h reais)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 12 – AGRADECIMENTOS ═══ -->
+<section class="slide" id="s12">
+  <svg class="wave-bg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">
+    <circle cx="500" cy="300" r="4" fill="none" stroke="#3b82f6" stroke-width="1">
+      <animate attributeName="r" from="4" to="320" dur="4s" repeatCount="indefinite" begin="0s"/>
+      <animate attributeName="opacity" values=".7;0" dur="4s" repeatCount="indefinite" begin="0s"/>
+    </circle>
+    <circle cx="500" cy="300" r="4" fill="none" stroke="#22c55e" stroke-width="1">
+      <animate attributeName="r" from="4" to="320" dur="4s" repeatCount="indefinite" begin="1.33s"/>
+      <animate attributeName="opacity" values=".7;0" dur="4s" repeatCount="indefinite" begin="1.33s"/>
+    </circle>
+    <circle cx="500" cy="300" r="4" fill="none" stroke="#3b82f6" stroke-width="1">
+      <animate attributeName="r" from="4" to="320" dur="4s" repeatCount="indefinite" begin="2.66s"/>
+      <animate attributeName="opacity" values=".7;0" dur="4s" repeatCount="indefinite" begin="2.66s"/>
+    </circle>
+  </svg>
+  <p style="font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:1rem;text-align:center">
+    Instituto Superior de Ciências e Tecnologia de Moçambique
+  </p>
+  <h1>Obrigado</h1>
+  <p style="margin:1rem 0 .35rem;text-align:center">
+    Comunicação Móvel &nbsp;·&nbsp; Projecto Final &nbsp;·&nbsp; Setembro 2026
+  </p>
+  <div class="ag-m">
+    <div class="m"><strong>Tatyana Ibrahim</strong><span>20240229</span></div>
+    <div class="m"><strong>Yannis Chilundo</strong><span>20220156</span></div>
+    <div class="m"><strong>Yasin Magno</strong><span>20240260</span></div>
+  </div>
+  <p style="margin-top:1.3rem;font-size:.74rem">
+    Docente: <strong style="color:var(--text)">Roxan Cadir</strong>
+  </p>
+</section>
+
+</div><!-- /deck -->
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsEl = document.getElementById('dots');
+  const ctrEl  = document.getElementById('ctr');
+  const prog   = document.getElementById('prog');
+  const total  = slides.length;
+  let cur = 0, busy = false;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+  });
+
+  function updateUI(){
+    const pct = total > 1 ? (cur / (total - 1)) * 100 : 100;
+    prog.style.width = pct + '%';
+    ctrEl.textContent = String(cur+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('on', i === cur));
+  }
+
+  function goTo(n){
+    if(n < 0 || n >= total || n === cur || busy) return;
+    busy = true;
+    const old = cur;
+    slides[old].classList.add('exiting');
+    slides[old].classList.remove('active');
+    setTimeout(() => slides[old].classList.remove('exiting'), 360);
+    cur = n;
+    slides[cur].classList.add('active');
+    updateUI();
+    setTimeout(() => { busy = false; }, 420);
+  }
+
+  updateUI();
+  document.getElementById('ap').addEventListener('click', () => goTo(cur-1));
+  document.getElementById('an').addEventListener('click', () => goTo(cur+1));
+  document.addEventListener('keydown', e => {
+    if(['ArrowRight','ArrowDown',' '].includes(e.key)){ e.preventDefault(); goTo(cur+1); }
+    if(['ArrowLeft','ArrowUp'].includes(e.key))       { e.preventDefault(); goTo(cur-1); }
+  });
+
+  // Rain for slide 2
+  const rainContainer = document.getElementById('rain');
+  for(let i=0; i<32; i++){
+    const d = document.createElement('div');
+    d.className = 'rdrop';
+    d.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*80}%;
+      animation-duration:${.65+Math.random()*.75}s;
+      animation-delay:${-Math.random()*2}s;
+      opacity:${.35+Math.random()*.4}`;
+    rainContainer.appendChild(d);
+  }
+})();
+</script>
+</body>
+</html>

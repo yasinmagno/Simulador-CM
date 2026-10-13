@@ -2,7 +2,7 @@ import type {
   SimulationInput, SimulationResult, TimelineChange, TimelineResult,
 } from '@/types/simulation';
 
-const BASE = 'http://localhost:8000/api';
+const BASE = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000') + '/api';
 
 async function post<T>(path: string, body?: object): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
