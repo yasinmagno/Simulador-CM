@@ -1,0 +1,42 @@
+<section id="seguranca" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:600;color:#8A5300;letter-spacing:3px;text-transform:uppercase">Segurança e QoS</p>
+<h2 style="font-size:72px;font-weight:700;line-height:1.1">A informação crítica passa primeiro</h2>
+</div>
+<div style="display:flex;gap:64px;align-items:start">
+<div style="width:560px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:8px;background:#FFFDF8;border:1px solid #E3DED2;border-radius:16px;padding:32px">
+<x-icon name="Lock" style="color:#8A5300;width:48px;height:48px"></x-icon>
+<h3 style="font-size:32px;font-weight:600">AES-256 no rádio</h3>
+<p style="font-size:24px;color:#4A5568;line-height:1.4">Cifra nativa do enlace PtP.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#FFFDF8;border:1px solid #E3DED2;border-radius:16px;padding:32px">
+<x-icon name="Key" style="color:#8A5300;width:48px;height:48px"></x-icon>
+<h3 style="font-size:32px;font-weight:600">VPN entre routers</h3>
+<p style="font-size:24px;color:#4A5568;line-height:1.4">Protege os dados também quando o tráfego migra para 4G/5G.</p>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:32px">
+<table style="font-size:32px;color:#14213D">
+<tr><th style="width:24%;text-align:left">VLAN</th><th style="width:46%;text-align:left">Função</th><th style="width:30%;text-align:left">Prioridade</th></tr>
+<tr><td>VLAN 10</td><td>Emergência e alertas</td><td>Muito alta</td></tr>
+<tr><td>VLAN 20</td><td>Dados de saúde</td><td>Alta</td></tr>
+<tr><td>VLAN 30</td><td>Administração</td><td>Média</td></tr>
+<tr><td>VLAN 40</td><td>Internet geral</td><td>Baixa</td></tr>
+</table>
+<p style="font-size:24px;font-weight:600;color:#4A5568;text-transform:uppercase;letter-spacing:2px">Ordem de QoS em degradação</p>
+<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+<p style="font-size:24px;font-weight:600;background:#14213D;color:#F6F4EE;padding:10px 20px;border-radius:999px">Voz / Alertas</p>
+<p style="font-size:24px;color:#6B7280">›</p>
+<p style="font-size:24px;font-weight:600;background:#2B3D57;color:#F6F4EE;padding:10px 20px;border-radius:999px">Dados de saúde</p>
+<p style="font-size:24px;color:#6B7280">›</p>
+<p style="font-size:24px;font-weight:600;background:#D5DDE8;color:#14213D;padding:10px 20px;border-radius:999px">Vídeo</p>
+<p style="font-size:24px;color:#6B7280">›</p>
+<p style="font-size:24px;font-weight:600;background:#E3DED2;color:#14213D;padding:10px 20px;border-radius:999px">Internet</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1400px;font-size:24px;color:#6B7280">Rede Resiliente HCM ↔ Guaxene · ISCTEM 2026</p>
+<p style="position:absolute;right:128px;bottom:64px;width:120px;font-size:24px;color:#6B7280;text-align:right">12</p>
+<aside>A segurança tem duas camadas: AES-256 no próprio enlace rádio e uma VPN entre os routers, que continua a proteger os dados se o tráfego passar para 4G/5G. A rede é segmentada em quatro VLANs. Quando há degradação, o QoS dá prioridade a voz e alertas, depois dados de saúde, depois vídeo e só no fim Internet geral.</aside>
+</section>

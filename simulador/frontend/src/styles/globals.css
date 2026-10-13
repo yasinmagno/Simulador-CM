@@ -144,3 +144,21 @@ html, body {
     animation: none !important;
   }
 }
+
+/* ── Modo defesa: slides integrados com o simulador ──────────────────────────
+   --u = 1 % da largura num ecrã 16:9 (encolhe em ecrãs mais baixos, para nada transbordar) */
+.deck { --u: min(1vw, 1.7778vh); font-family: 'Segoe UI', system-ui, sans-serif; color: #0f1e33; }
+.deck-eyebrow { font-size: max(11px, calc(var(--u) * 1.05)); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #b45309; }
+.deck-titulo  { font-size: max(20px, calc(var(--u) * 2.9));  font-weight: 800; line-height: 1.1; }
+.deck-capa    { font-size: max(28px, calc(var(--u) * 5));    font-weight: 800; line-height: 1.05; }
+.deck-lead    { font-size: max(15px, calc(var(--u) * 1.75)); line-height: 1.35; }
+.deck-texto   { font-size: max(13px, calc(var(--u) * 1.2));  line-height: 1.45; }
+.deck-peq     { font-size: max(11px, calc(var(--u) * 0.92)); line-height: 1.4; }
+.deck-num     { font-family: ui-monospace, Consolas, monospace; font-weight: 700; line-height: 1; font-size: max(22px, calc(var(--u) * 3.2)); }
+.deck-num-g   { font-family: ui-monospace, Consolas, monospace; font-weight: 700; line-height: 1; font-size: max(34px, calc(var(--u) * 6)); }
+.deck-pad     { padding: calc(var(--u) * 3.2) calc(var(--u) * 4.5) calc(var(--u) * 4.2); }
+.deck-gap     { gap: calc(var(--u) * 1.6); }
+.deck-card    { background: #ffffff; border: 1px solid #e5e1d8; border-radius: calc(var(--u) * 1); padding: calc(var(--u) * 1.6); }
+
+@keyframes deck-entrar { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.deck-entrar { animation: deck-entrar .35s ease-out; }

@@ -23,11 +23,11 @@ const CesiumView = dynamic(() => import('./CesiumView'), {
 
 const NetworkSchematic = dynamic(() => import('./NetworkSchematic').then((m) => m.NetworkSchematic), { ssr: false });
 
-type MapMode = 'esquema' | '2d' | '3d';
+export type MapMode = 'esquema' | '2d' | '3d';
 const LABEL: Record<MapMode, string> = { esquema: 'Esquema', '2d': '2D', '3d': '3D' };
 
-export function MapView() {
-  const [mapMode, setMapMode] = useState<MapMode>('esquema');
+export function MapView({ initialMode = 'esquema' }: { initialMode?: MapMode }) {
+  const [mapMode, setMapMode] = useState<MapMode>(initialMode);
   const { result } = useSimulation();
   const estado = result?.network.estado;
   const chuva = result?.input.l_ambiente_db ?? 0;

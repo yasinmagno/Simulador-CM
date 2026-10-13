@@ -1,0 +1,48 @@
+<section id="arquitectura" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:600;color:#8A5300;letter-spacing:3px;text-transform:uppercase">Arquitectura</p>
+<h2 style="font-size:72px;font-weight:700;line-height:1.1">Uma solução híbrida em três camadas</h2>
+</div>
+<div style="position:relative;width:1664px;height:600px">
+<div style="position:absolute;left:0px;top:0px;width:420px;height:130px;background:#FFFDF8;border:1px solid #C9C2B2;border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+<h3 style="font-size:32px;font-weight:700">ISP / Fibra</h3>
+<p style="font-size:24px;color:#4A5568">Acesso externo primário</p>
+</div>
+<div style="position:absolute;left:622px;top:0px;width:420px;height:130px;background:#FFFDF8;border:1px solid #C9C2B2;border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+<h3 style="font-size:32px;font-weight:700">Satélite</h3>
+<p style="font-size:24px;color:#4A5568">Contingência externa</p>
+</div>
+<div style="position:absolute;left:0px;top:220px;width:520px;height:160px;background:#14213D;border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+<h3 style="font-size:32px;font-weight:700;color:#F6F4EE">Hospital Central</h3>
+<p style="font-size:24px;color:#D5DDE8">Router + AF-5XHD + 4G/5G</p>
+</div>
+<div style="position:absolute;left:1144px;top:220px;width:520px;height:160px;background:#14213D;border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+<h3 style="font-size:32px;font-weight:700;color:#F6F4EE">EP Guaxene</h3>
+<p style="font-size:24px;color:#D5DDE8">Router + AF-5XHD + 4G/5G</p>
+</div>
+<p style="position:absolute;left:540px;top:236px;width:584px;font-size:32px;font-weight:700;color:#8A5300;text-align:center">Rádio PtP 5,8 GHz · 3,69 km</p>
+<p style="position:absolute;left:540px;top:322px;width:584px;font-size:24px;color:#4A5568;text-align:center">enlace principal · AES-256 + VPN</p>
+<div style="position:absolute;left:0px;top:470px;width:420px;height:130px;background:#FFFDF8;border:1px solid #C9C2B2;border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+<h3 style="font-size:32px;font-weight:700">Energia resiliente</h3>
+<p style="font-size:24px;color:#4A5568">EDM + bateria + solar</p>
+</div>
+<div style="position:absolute;left:622px;top:470px;width:420px;height:130px;background:#E4EEF8;border:1px solid #2F6FB0;border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+<h3 style="font-size:32px;font-weight:700">4G / 5G</h3>
+<p style="font-size:24px;color:#2B4A6B">Redundância entre pontos</p>
+</div>
+<div style="position:absolute;left:1244px;top:470px;width:420px;height:130px;background:#FFFDF8;border:1px solid #C9C2B2;border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+<h3 style="font-size:32px;font-weight:700">Energia resiliente</h3>
+<p style="font-size:24px;color:#4A5568">EDM + bateria + solar</p>
+</div>
+<x-connector x1="210" y1="130" x2="210" y2="220" head="end" style="color:#6B7280;border-width:3px"></x-connector>
+<x-connector x1="832" y1="130" x2="440" y2="220" head="end" style="color:#6B7280;border-width:3px"></x-connector>
+<x-connector x1="520" y1="300" x2="1144" y2="300" head="both" style="color:#8A5300;border-width:6px"></x-connector>
+<x-connector x1="780" y1="470" x2="420" y2="380" head="end" style="color:#2F6FB0;border-width:3px;border-style:dashed"></x-connector>
+<x-connector x1="884" y1="470" x2="1244" y2="380" head="end" style="color:#2F6FB0;border-width:3px;border-style:dashed"></x-connector>
+<x-connector x1="210" y1="470" x2="210" y2="380" head="end" style="color:#6B7280;border-width:3px"></x-connector>
+<x-connector x1="1454" y1="470" x2="1454" y2="380" head="end" style="color:#6B7280;border-width:3px"></x-connector>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1400px;font-size:24px;color:#6B7280">A comunicação local continua mesmo sem Internet externa</p>
+<p style="position:absolute;right:128px;bottom:64px;width:120px;font-size:24px;color:#6B7280;text-align:right">10</p>
+<aside>O rádio PtP é o caminho preferencial entre HCM e Guaxene; o 4G/5G é o caminho de redundância. No HCM o acesso externo usa prioritariamente ISP ou fibra e pode migrar para 4G/5G ou satélite. Cada local tem energia resiliente: EDM, bateria e solar. Como as camadas estão separadas, a comunicação local continua mesmo quando a Internet externa cai. Equipamento de referência: Ubiquiti airFiber AF-5XHD.</aside>
+</section>

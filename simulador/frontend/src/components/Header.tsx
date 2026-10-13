@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import { Radio, Sigma } from 'lucide-react';
+import Link from 'next/link';
+import { Presentation, Radio, Sigma } from 'lucide-react';
 import { useSimulation } from '@/store/simulation';
 import type { AppMode } from '@/types/simulation';
 
@@ -11,7 +12,7 @@ const STATE_CONFIG = {
   'FALHA':     { label: 'FALHA',      color: 'bg-red-800',    text: 'text-red-900'    },
 };
 
-export function Header() {
+export function Header({ embedded = false }: { embedded?: boolean }) {
   const { result, mode, setMode, loading, openFormulas } = useSimulation();
   const estado = result?.network?.estado ?? 'NORMAL';
   const cfg = STATE_CONFIG[estado as keyof typeof STATE_CONFIG] ?? STATE_CONFIG['NORMAL'];
@@ -44,6 +45,16 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
+      {/* Slides da defesa integrados com o simulador */}
+      {!embedded && (
+        <Link
+          href="/apresentacao"
+          className="flex items-center gap-1 px-3 py-1 rounded-md text-xs font-semibold border border-gray-200 text-gray-600 hover:text-blue-700 hover:border-blue-300"
+        >
+          <Presentation className="w-3.5 h-3.5" /> Modo defesa
+        </Link>
+      )}
+
       {/* Secção com todas as fórmulas usadas nos cálculos */}
       <button
         onClick={() => openFormulas()}

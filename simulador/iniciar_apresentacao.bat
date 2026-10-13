@@ -25,7 +25,7 @@ if errorlevel 1 (
 
 :: 2) Abrir o browser daqui a alguns segundos e arrancar backend + frontend
 echo  [2/2] A iniciar backend (8000) e frontend (3000)...
-start "" cmd /c "timeout /t 6 /nobreak >nul && start http://localhost:3000"
+start "" cmd /c "timeout /t 6 /nobreak >nul && start http://localhost:3000/apresentacao"
 call npm run start
 
 goto :eof

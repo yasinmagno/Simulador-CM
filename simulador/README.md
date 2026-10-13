@@ -93,6 +93,23 @@ carrega ~0,8 MB. Depois da primeira compilação basta `npm run start`.
 
 ---
 
+## Modo defesa (slides + simulador)
+
+Abrir **http://localhost:3000/apresentacao** (o `iniciar_apresentacao.bat` já abre esta página), ou o botão
+**Modo defesa** no cabeçalho. São 18 slides; os técnicos usam os componentes e o motor do simulador ao vivo
+(mapa, orçamento do enlace, Fresnel, modulação, esquema, baterias, resiliência, 3D) e o slide 15 é o simulador completo.
+
+| Tecla | Acção |
+|-------|-------|
+| → ← / PageDown PageUp / Espaço | Slide seguinte / anterior (funciona com apresentadores USB) |
+| 1–9 | Carregar um cenário (slides de modulação e resiliência) |
+| F | Ecrã inteiro |
+| S | Janela do orador: notas, slide seguinte e cronómetro, sincronizada com a apresentação |
+
+Se o backend não responder, os slides mostram os valores do relatório.
+
+---
+
 ## Modos de operação
 
 | Modo         | Descrição |
