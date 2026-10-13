@@ -271,22 +271,33 @@ export function NetworkSchematic() {
             ? ` · ${MOD_LABEL[lb.modulacao_selecionada]} · ${lb.capacidade_mbps.toFixed(1)} Mbps` : ''}`}
           labelPos={{ x: 500, y: 196 }} />
 
-        {/* Chuva */}
+        {/* Chuva — animações SMIL (coordenadas SVG, não CSS px) */}
         {chuva > 0 && (
           <g>
             {Array.from({ length: Math.round(30 + chuva * 90) }).map((_, i) => {
-              const x = 12 + ((i * 41 + i * i * 7) % 976);
+              const x  = 12 + ((i * 41 + i * i * 7) % 976);
               const len = 18 + (i % 4) * 5;
-              const w = 1 + (i % 3) * 0.5;
-              const dur = 0.7 + (i % 5) * 0.07;
-              const op = 0.45 + (i % 6) * 0.09;
+              const w  = 1 + (i % 3) * 0.5;
+              const dur = (0.7 + (i % 5) * 0.07).toFixed(3);
+              const op  = (0.45 + (i % 6) * 0.09).toFixed(2);
+              const delay = ((i % 13) * 0.065).toFixed(3);
               return (
                 <line key={i}
-                  x1={x} y1={80} x2={x - 7} y2={80 + len}
-                  stroke="#60a5fa" strokeWidth={w} opacity={op}
-                  className="gota"
-                  style={{ animationDelay: `${(i % 13) * 0.065}s`, animationDuration: `${dur}s` }}
-                />
+                  x1={x} y1={0} x2={x - 7} y2={len}
+                  stroke="#60a5fa" strokeWidth={w} opacity={0}
+                >
+                  {/* Cair do topo (y=0) até ao fundo (y=560) */}
+                  <animateTransform
+                    attributeName="transform" type="translate"
+                    from="0 0" to="0 560"
+                    dur={`${dur}s`} begin={`${delay}s`} repeatCount="indefinite"
+                  />
+                  <animate
+                    attributeName="opacity"
+                    values={`0;${op};${op};0`} keyTimes="0;0.12;0.88;1"
+                    dur={`${dur}s`} begin={`${delay}s`} repeatCount="indefinite"
+                  />
+                </line>
               );
             })}
             <text x={500} y={160} textAnchor="middle" fontSize={11} fill="#1d4ed8">
