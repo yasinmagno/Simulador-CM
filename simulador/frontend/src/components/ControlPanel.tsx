@@ -2,7 +2,7 @@ import { useSimulation } from '@/store/simulation';
 import { Play, RotateCcw, ChevronRight, ChevronLeft } from 'lucide-react';
 import clsx from 'clsx';
 
-const SCENARIOS = [
+export const SCENARIOS = [
   { id: 1, label: '1 — Operação Normal',         desc: 'Todos os sistemas operacionais. PtP ativo, EDM disponível, ISP conectado.' },
   { id: 2, label: '2 — Falha do PtP',            desc: 'Enlace PtP inoperacional. Tráfego local comuta para rede 4G/5G.' },
   { id: 3, label: '3 — Falha da Rede Móvel',     desc: 'Rede 4G/5G local indisponível. PtP é o único caminho local.' },

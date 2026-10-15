@@ -1,0 +1,18 @@
+<section id="modulacao" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:600;color:#8A5300;letter-spacing:3px;text-transform:uppercase">Dimensionamento · margem</p>
+<h2 style="font-size:72px;font-weight:700;line-height:1.1">Mesmo em QPSK sobram 34 dB de margem</h2>
+</div>
+<table style="font-size:32px;color:#14213D">
+<tr><th style="width:24%;text-align:left">Modulação</th><th style="width:22%;text-align:right">Sensibilidade</th><th style="width:22%;text-align:right">Fade margin</th><th style="width:32%;text-align:left">Interpretação</th></tr>
+<tr style="background:#F1E3C2"><td><b>QPSK MIMO</b></td><td style="text-align:right">−85 dBm</td><td style="text-align:right"><b>33,95 dB</b></td><td>Modo robusto / emergência</td></tr>
+<tr><td>16-QAM MIMO</td><td style="text-align:right">−81 dBm</td><td style="text-align:right">29,95 dB</td><td>Boa margem</td></tr>
+<tr><td>64-QAM</td><td style="text-align:right">−75 dBm</td><td style="text-align:right">23,95 dB</td><td>Operação normal favorável</td></tr>
+<tr><td>256-QAM</td><td style="text-align:right">−69 dBm</td><td style="text-align:right">17,95 dB</td><td>Menor margem</td></tr>
+<tr><td>1024-QAM</td><td style="text-align:right">−63 dBm</td><td style="text-align:right">11,95 dB</td><td>Não exigido no projecto</td></tr>
+</table>
+<p style="font-size:32px;line-height:1.4;color:#4A5568">Em QPSK / 20 MHz o rádio entrega <b style="color:#14213D">≈ 24,32 Mbps</b> por direcção, acima dos 15 Mbps críticos. A capacidade cai antes de a comunicação desaparecer.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1400px;font-size:24px;color:#6B7280">Margem = Pᵣ (−51,05 dBm) − sensibilidade · Sensibilidades AF-5XHD, canal 20 MHz [3]</p>
+<p style="position:absolute;right:128px;bottom:64px;width:120px;font-size:24px;color:#6B7280;text-align:right">09</p>
+<aside>A margem de desvanecimento é a diferença entre a potência recebida e a sensibilidade de cada modulação. Com modulação adaptativa, quando a qualidade do sinal piora, o rádio desce de 64-QAM para 16-QAM e QPSK. Mesmo no modo mais robusto, QPSK, temos cerca de 34 dB de margem e 24 Mbps, acima do requisito crítico de 15 Mbps.</aside>
+</section>

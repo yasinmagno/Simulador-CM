@@ -4,7 +4,7 @@ import {
 } from 'recharts';
 import { useSimulation } from '@/store/simulation';
 
-export function EnlaceProfile() {
+export function EnlaceProfile({ altura = 160 }: { altura?: number }) {
   const { result } = useSimulation();
   if (!result) return null;
 
@@ -34,7 +34,7 @@ export function EnlaceProfile() {
         Perfil do Enlace — LOS e Zona de Fresnel
         {!allOk && <span className="ml-2 text-red-500">⚠ Obstrução detetada</span>}
       </h3>
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={altura}>
         <ComposedChart data={data} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis

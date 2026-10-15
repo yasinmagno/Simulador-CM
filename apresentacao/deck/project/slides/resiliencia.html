@@ -1,0 +1,19 @@
+<section id="resiliencia" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:600;color:#8A5300;letter-spacing:3px;text-transform:uppercase">Estudo de resiliência</p>
+<h2 style="font-size:72px;font-weight:700;line-height:1.1">Uma falha simples nunca corta a ligação</h2>
+</div>
+<table style="font-size:26px;color:#14213D">
+<tr><th style="width:22%;text-align:left">Cenário</th><th style="width:28%;text-align:left">Condição</th><th style="width:22%;text-align:left">Caminho activo</th><th style="width:28%;text-align:left">Resultado</th></tr>
+<tr><td><b>Normal</b></td><td>Tudo operacional</td><td>PtP + acesso normal</td><td>Serviço completo</td></tr>
+<tr><td><b>Falha rede móvel</b></td><td>4G/5G em falha</td><td>PtP</td><td>Local preservada</td></tr>
+<tr style="background:#E4EEF8"><td><b>Falha do PtP</b></td><td>Rádio em falha</td><td>4G/5G</td><td>Degradado, disponível</td></tr>
+<tr style="background:#E4EEF8"><td><b>Falha externa</b></td><td>Fibra e 4G externos em falha</td><td>PtP + satélite HCM</td><td>Saída de contingência</td></tr>
+<tr style="background:#E4EEF8"><td><b>Corte de energia</b></td><td>EDM em falha</td><td>Bateria + solar</td><td>Autonomia ≥ 72 h</td></tr>
+<tr style="background:#F1E3C2"><td><b>Crítico</b></td><td>PtP e 4G/5G em falha</td><td>Satélite só no HCM</td><td>Guaxene isolada</td></tr>
+<tr style="background:#EBD3CC"><td><b>Falha total</b></td><td>Sem comunicação nem energia</td><td>Nenhum</td><td>Indisponível</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1400px;font-size:24px;color:#6B7280">Estados: Normal → Degradado → Emergência → Crítico → Falha</p>
+<p style="position:absolute;right:128px;bottom:64px;width:120px;font-size:24px;color:#6B7280;text-align:right">13</p>
+<aside>Avaliámos a reacção da arquitectura a falhas isoladas e combinadas. Em qualquer falha simples há sempre pelo menos um caminho: se cai o 4G, o PtP continua; se cai o PtP, passa para 4G/5G; se cai a Internet externa, o satélite no HCM dá saída; se cai a EDM, as baterias e o solar garantem 72 horas. Só a falha simultânea do PtP e do 4G/5G isola Guaxene, o que exige um terminal portátil local.</aside>
+</section>

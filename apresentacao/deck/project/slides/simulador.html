@@ -1,0 +1,41 @@
+<section id="simulador" data-transition="fade" style="background:#14213D;color:#F6F4EE;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:600;color:#E8B23A;letter-spacing:3px;text-transform:uppercase">Simulador desenvolvido</p>
+<h2 style="font-size:72px;font-weight:700;line-height:1.1;color:#F6F4EE">Os cálculos do relatório, vistos a funcionar</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:12px;background:#1D2E4A;border-radius:16px;padding:32px">
+<x-icon name="Activity" style="color:#E8B23A;width:48px;height:48px"></x-icon>
+<h3 style="font-size:32px;font-weight:600;color:#F6F4EE">Motor RF e de estados</h3>
+<p style="font-size:24px;color:#D5DDE8;line-height:1.4">Link budget, Fresnel, curvatura, energia e máquina de estados em Python.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#1D2E4A;border-radius:16px;padding:32px">
+<x-icon name="Globe" style="color:#E8B23A;width:48px;height:48px"></x-icon>
+<h3 style="font-size:32px;font-weight:600;color:#F6F4EE">Esquema, mapa 2D e 3D</h3>
+<p style="font-size:24px;color:#D5DDE8;line-height:1.4">Pacotes nos caminhos activos; zona de Fresnel em 3D com CesiumJS.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#1D2E4A;border-radius:16px;padding:32px">
+<x-icon name="Settings" style="color:#E8B23A;width:48px;height:48px"></x-icon>
+<h3 style="font-size:32px;font-weight:600;color:#F6F4EE">Construtor de cenários</h3>
+<p style="font-size:24px;color:#D5DDE8;line-height:1.4">Qualquer combinação de falhas, atenuação extra e horas sem EDM.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#1D2E4A;border-radius:16px;padding:32px">
+<x-icon name="Clock" style="color:#E8B23A;width:48px;height:48px"></x-icon>
+<h3 style="font-size:32px;font-weight:600;color:#F6F4EE">Linha temporal</h3>
+<p style="font-size:24px;color:#D5DDE8;line-height:1.4">Sequência de eventos com descarga, solar e recarga das baterias.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#1D2E4A;border-radius:16px;padding:32px">
+<x-icon name="Chart" style="color:#E8B23A;width:48px;height:48px"></x-icon>
+<h3 style="font-size:32px;font-weight:600;color:#F6F4EE">Escada de modulação</h3>
+<p style="font-size:24px;color:#D5DDE8;line-height:1.4">Modulação em uso e capacidade face ao limiar de 15 Mbps.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#1D2E4A;border-radius:16px;padding:32px">
+<x-icon name="Book" style="color:#E8B23A;width:48px;height:48px"></x-icon>
+<h3 style="font-size:32px;font-weight:600;color:#F6F4EE">Painel de fórmulas</h3>
+<p style="font-size:24px;color:#D5DDE8;line-height:1.4">18 equações com os valores do cenário actual substituídos.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1400px;font-size:24px;color:#B9C4D3">FastAPI · Pydantic · Next.js 14 · TypeScript · Leaflet · CesiumJS · 79/79 testes</p>
+<p style="position:absolute;right:128px;bottom:64px;width:120px;font-size:24px;color:#B9C4D3;text-align:right">14</p>
+<aside>O simulador é um complemento visual: os critérios técnicos estão no relatório, e o simulador reproduz os cálculos e os estados. O backend em Python e FastAPI faz toda a matemática RF, a energia e a máquina de estados; o frontend em Next.js mostra o esquema, o mapa 2D, a vista 3D com a zona de Fresnel, a escada de modulação e as fórmulas. O backend tem 79 testes automáticos, todos a passar. Tem um modo Apresentação e um modo Engenharia.</aside>
+</section>
