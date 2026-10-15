@@ -48,6 +48,13 @@ const MODS = [
   { key: '1024QAM', label: '1024-QAM', sens: -63, nota: 'Não exigido no projecto' },
 ];
 
+/** Participantes do grupo — nome e número de estudante */
+const AUTORES: [string, string][] = [
+  ['Tatyana Ibrahim', '20240229'],
+  ['Yannis Chilundo', '20220156'],
+  ['Yasin Magno', '20240260'],
+];
+
 const fmt = (n: number, d = 2) =>
   n.toLocaleString('pt-PT', { minimumFractionDigits: d, maximumFractionDigits: d });
 
@@ -57,12 +64,13 @@ function Moldura({ eyebrow, titulo, children, escuro = false }: {
   eyebrow: string; titulo: ReactNode; children: ReactNode; escuro?: boolean;
 }) {
   return (
-    <div className={clsx('h-full flex flex-col deck-pad deck-gap', escuro ? 'bg-[#0f1e33] text-[#f6f4ee]' : 'bg-[#f6f4ee]')}>
-      <div className="flex flex-col gap-1">
+    <div className={clsx('h-full relative flex flex-col deck-pad deck-gap', escuro ? 'bg-[#0f1e33] text-[#f6f4ee]' : 'bg-[#f6f4ee]')}>
+      <FundoSubtil cor={escuro ? '#7aa2d7' : '#1a2f52'} />
+      <div className="relative z-10 flex flex-col gap-1">
         <p className="deck-eyebrow" style={escuro ? { color: '#e8b23a' } : undefined}>{eyebrow}</p>
         <h2 className="deck-titulo" style={escuro ? { color: '#f6f4ee' } : undefined}>{titulo}</h2>
       </div>
-      <div className="flex-1 min-h-0">{children}</div>
+      <div className="relative z-10 flex-1 min-h-0">{children}</div>
     </div>
   );
 }
@@ -115,25 +123,167 @@ function BotoesCenario({ ids }: { ids: number[] }) {
 
 /* ── Slides ──────────────────────────────────────────────────────────────── */
 
-function Capa() {
+/** Ondas de rádio concêntricas a expandir a partir de uma antena. */
+function Ondas({ cx, cy, cor, atraso = 0, op = 0.5, rMax = 210 }: {
+  cx: number; cy: number; cor: string; atraso?: number; op?: number; rMax?: number;
+}) {
+  const dur = 3.2;
   return (
-    <div className="h-full flex flex-col justify-between deck-pad bg-[#0f1e33] text-[#f6f4ee]">
-      <div className="flex items-center gap-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/isctem.png" alt="ISCTEM" style={{ width: 'calc(var(--u) * 6)', height: 'calc(var(--u) * 6)' }} className="object-contain" />
+    <g fill="none" stroke={cor}>
+      {[0, 1, 2].map((i) => {
+        const begin = `${-(atraso + i * (dur / 3))}s`;
+        return (
+          <circle key={i} cx={cx} cy={cy} r={12}>
+            <animate attributeName="r" values={`12;${rMax}`} dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+            <animate attributeName="opacity" values={`${op};0`} dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+            <animate attributeName="stroke-width" values="2.5;0.3" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+          </circle>
+        );
+      })}
+    </g>
+  );
+}
+
+/** Motivo discreto de telecomunicações para os slides de conteúdo (ondas nos cantos
+ *  e um enlace ténue a correr em baixo). Fica atrás do conteúdo e não intercepta cliques. */
+function FundoSubtil({ cor = '#1a2f52', acento = '#b45309' }: { cor?: string; acento?: string }) {
+  const linha = 'M-20 846 Q800 812 1620 846';
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 w-full h-full">
+        <Ondas cx={70} cy={880} cor={cor} op={0.14} rMax={260} atraso={0} />
+        <Ondas cx={1540} cy={40} cor={cor} op={0.12} rMax={240} atraso={1.5} />
+        <path d={linha} fill="none" stroke={cor} strokeWidth={1.5} strokeDasharray="10 12" strokeLinecap="round" opacity={0.16}>
+          <animate attributeName="stroke-dashoffset" values="0;-44" dur="1s" repeatCount="indefinite" />
+        </path>
+        <circle r={3.5} fill={acento} opacity={0.45}>
+          <animateMotion path={linha} dur="6s" begin="-1s" repeatCount="indefinite" />
+        </circle>
+      </svg>
+    </div>
+  );
+}
+
+/** Torre/antena com emissor a irradiar sinal. */
+function Torre({ x, y, atraso }: { x: number; y: number; atraso: number }) {
+  return (
+    <g>
+      <g stroke="#7aa2d7" strokeWidth={2.5} fill="none" opacity={0.5} strokeLinecap="round">
+        <line x1={x} y1={y + 150} x2={x} y2={y} />
+        <path d={`M${x} ${y + 150} L${x - 22} ${y + 70} M${x} ${y + 150} L${x + 22} ${y + 70}`} />
+        <line x1={x - 13} y1={y + 55} x2={x + 13} y2={y + 55} />
+        <line x1={x - 9} y1={y + 95} x2={x + 9} y2={y + 95} />
+      </g>
+      <circle cx={x} cy={y - 4} r={6} fill="#e8b23a" />
+      <Ondas cx={x} cy={y - 4} cor="#e8b23a" atraso={atraso} />
+    </g>
+  );
+}
+
+/** Fundo animado de telecomunicações: enlace PtP, ondas de rádio e satélite. */
+function TelecomFundo() {
+  const TX = { x: 175, y: 596 };
+  const RX = { x: 1425, y: 596 };
+  const beam = `M${TX.x + 8} ${TX.y - 4} Q800 648 ${RX.x - 8} ${RX.y - 4}`;
+  return (
+    <svg
+      viewBox="0 0 1600 900"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+      className="absolute inset-0 w-full h-full"
+      style={{ pointerEvents: 'none' }}
+    >
+      <defs>
+        <filter id="capa-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+
+      {/* Órbita e ligação descendente do satélite (contingência) */}
+      <path d="M320 180 Q800 70 1280 180" fill="none" stroke="#7aa2d7" strokeWidth={1.5} strokeDasharray="2 11" opacity={0.3} />
+      <g stroke="#7aa2d7" strokeWidth={1.6} fill="none" strokeDasharray="9 11" strokeLinecap="round" opacity={0.24}>
+        <line x1={800} y1={150} x2={TX.x} y2={TX.y - 4}>
+          <animate attributeName="stroke-dashoffset" values="0;-40" dur="1.1s" repeatCount="indefinite" />
+        </line>
+        <line x1={800} y1={150} x2={RX.x} y2={RX.y - 4}>
+          <animate attributeName="stroke-dashoffset" values="0;-40" dur="1.1s" repeatCount="indefinite" />
+        </line>
+      </g>
+
+      {/* Satélite a flutuar */}
+      <g filter="url(#capa-glow)">
+        <animateTransform attributeName="transform" type="translate" values="800 142;800 160;800 142" dur="5.5s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" />
+        <g stroke="#e8b23a" strokeWidth={2} fill="none">
+          <rect x={-15} y={-9} width={30} height={18} rx={4} fill="#13284a" />
+          <rect x={-42} y={-5} width={23} height={10} rx={2} fill="#7aa2d7" stroke="none" opacity={0.75} />
+          <rect x={19} y={-5} width={23} height={10} rx={2} fill="#7aa2d7" stroke="none" opacity={0.75} />
+          <line x1={0} y1={-9} x2={0} y2={-22} />
+        </g>
+        <circle cx={0} cy={-24} r={3} fill="#e8b23a" stroke="none" />
+      </g>
+
+      {/* Torres nos dois extremos (HCM ↔ Guaxene) */}
+      <Torre x={TX.x} y={TX.y} atraso={0} />
+      <Torre x={RX.x} y={RX.y} atraso={1.6} />
+
+      {/* Enlace principal: feixe rádio PtP com tracejado a correr */}
+      <path d={beam} fill="none" stroke="#e8b23a" strokeWidth={3} strokeDasharray="14 14" strokeLinecap="round" opacity={0.7}>
+        <animate attributeName="stroke-dashoffset" values="0;-56" dur="0.9s" repeatCount="indefinite" />
+      </path>
+      {/* Pacotes de dados a viajar no enlace */}
+      {[0, 1.35, 2.7].map((b, i) => (
+        <circle key={`r${i}`} r={5} fill="#fff" opacity={0.9}>
+          <animateMotion path={beam} dur="4s" begin={`${-b}s`} repeatCount="indefinite" />
+        </circle>
+      ))}
+      <circle r={4} fill="#e8b23a" opacity={0.85}>
+        <animateMotion path={`M${RX.x - 8} ${RX.y - 4} Q800 648 ${TX.x + 8} ${TX.y - 4}`} dur="4s" begin="-2s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+  );
+}
+
+function Capa() {
+  const chips = ['Rádio PtP 5,8 GHz', '3,69 km', '4G / 5G', 'Satélite'];
+  return (
+    <div className="h-full relative overflow-hidden flex flex-col justify-between deck-pad capa-fundo text-[#f6f4ee]">
+      <div className="capa-grelha absolute inset-0" />
+      <TelecomFundo />
+
+      <div className="relative z-10 flex items-center gap-5">
+        <div className="capa-logo flex-none" style={{ padding: 'calc(var(--u) * 0.9)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/isctem.png" alt="ISCTEM" style={{ width: 'calc(var(--u) * 9.5)', height: 'calc(var(--u) * 9.5)' }} className="object-contain" />
+        </div>
         <div>
           <p className="deck-texto font-semibold">ISCTEM · Licenciatura em Engenharia Informática</p>
           <p className="deck-peq text-[#b9c4d3]">Comunicação Móvel · Projecto Final · 3.º Ano, Turma A</p>
         </div>
       </div>
-      <div className="flex flex-col deck-gap">
+
+      <div className="relative z-10 flex flex-col deck-gap">
         <p className="deck-eyebrow" style={{ color: '#e8b23a' }}>Dimensionamento de uma rede resiliente</p>
-        <h1 className="deck-capa">Hospital Central de Maputo <span className="text-[#e8b23a]">↔</span> Guaxene</h1>
-        <p className="deck-lead text-[#b9c4d3]">Enlace rádio PtP 5,8 GHz · 3,69 km · 4G/5G · Satélite</p>
+        <h1 className="deck-capa" style={{ textShadow: '0 2px 20px rgba(10,21,39,0.7)' }}>
+          Hospital Central de Maputo <span className="text-[#e8b23a]">↔</span> Guaxene
+        </h1>
+        <div className="flex flex-wrap deck-gap pt-1">
+          {chips.map((c) => (
+            <span key={c} className="capa-chip"><span className="capa-chip-ponto" />{c}</span>
+          ))}
+        </div>
       </div>
-      <div className="flex justify-between border-t border-[#2b3d57] pt-4 deck-peq text-[#b9c4d3]">
-        <span>Tatyana Ibrahim · Yannis Chilundo · Yasin Magno</span>
-        <span>Docente: Roxan Cadir · Maputo, 2026</span>
+
+      <div className="relative z-10 flex items-end justify-between gap-4 border-t border-[#2b3d57] pt-4">
+        <div className="flex flex-wrap deck-gap">
+          {AUTORES.map(([nome, num]) => (
+            <div key={num} className="flex flex-col rounded-lg border border-[#2b3d57] bg-[#15294a]/70 px-4 py-2">
+              <span className="deck-texto font-semibold text-white">{nome}</span>
+              <span className="deck-peq font-mono tracking-wider text-[#e8b23a]">Nº {num}</span>
+            </div>
+          ))}
+        </div>
+        <span className="deck-peq text-[#b9c4d3] whitespace-nowrap self-end pb-1">Docente: Roxan Cadir · Maputo, 2026</span>
       </div>
     </div>
   );
@@ -565,19 +715,20 @@ function Custos() {
 function Conclusao() {
   const n = [['−51 dBm', 'Potência recebida a 3,69 km e 5,8 GHz'], ['34 dB', 'Margem em QPSK, o modo mais robusto'], ['24 Mbps', 'Em QPSK, acima dos 15 Mbps críticos'], ['72 h', 'De autonomia sem a rede eléctrica']];
   return (
-    <div className="h-full flex flex-col justify-between deck-pad bg-[#e8b23a]">
-      <div className="flex flex-col gap-1">
+    <div className="h-full relative flex flex-col justify-between deck-pad bg-[#e8b23a]">
+      <FundoSubtil cor="#0f1e33" acento="#0f1e33" />
+      <div className="relative z-10 flex flex-col gap-1">
         <p className="deck-eyebrow" style={{ color: '#0f1e33' }}>Conclusão</p>
         <h2 className="deck-titulo">Propagação, capacidade, energia e resiliência batem certo</h2>
       </div>
-      <div className="grid grid-cols-4 deck-gap">
+      <div className="relative z-10 grid grid-cols-4 deck-gap">
         {n.map(([v, l]) => (
           <div key={v} className="border-t-4 border-[#0f1e33] pt-4 flex flex-col gap-2">
             <p className="deck-num">{v}</p><p className="deck-texto">{l}</p>
           </div>
         ))}
       </div>
-      <p className="deck-lead">
+      <p className="relative z-10 deck-lead">
         PtP como ligação principal, 4G/5G como redundância e satélite como contingência, com failover, VLANs, QoS e cifra:
         <b> pelo menos um caminho sobrevive a qualquer falha simples.</b>
       </p>
@@ -587,12 +738,26 @@ function Conclusao() {
 
 function Fim() {
   return (
-    <div className="h-full flex flex-col items-center justify-center deck-gap bg-[#0f1e33] text-[#f6f4ee]">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/isctem.png" alt="ISCTEM" style={{ width: 'calc(var(--u) * 8)', height: 'calc(var(--u) * 8)' }} className="object-contain" />
-      <h1 className="deck-capa">Obrigado</h1>
-      <p className="deck-titulo text-[#e8b23a]">Perguntas?</p>
-      <p className="deck-peq text-[#b9c4d3]">Tatyana Ibrahim · Yannis Chilundo · Yasin Magno · Comunicação Móvel · ISCTEM 2026</p>
+    <div className="h-full relative overflow-hidden flex flex-col items-center justify-center deck-gap capa-fundo text-[#f6f4ee]">
+      <div className="capa-grelha absolute inset-0" />
+      <TelecomFundo />
+      <div className="relative z-10 flex flex-col items-center deck-gap">
+        <div className="capa-logo flex-none" style={{ padding: 'calc(var(--u) * 1)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/isctem.png" alt="ISCTEM" style={{ width: 'calc(var(--u) * 11)', height: 'calc(var(--u) * 11)' }} className="object-contain" />
+        </div>
+        <h1 className="deck-capa" style={{ textShadow: '0 2px 20px rgba(10,21,39,0.7)' }}>Obrigado</h1>
+        <p className="deck-titulo text-[#e8b23a]">Perguntas?</p>
+        <div className="flex flex-wrap items-center justify-center deck-gap pt-2">
+          {AUTORES.map(([nome, num]) => (
+            <div key={num} className="flex items-center gap-2 rounded-full border border-[#2b3d57] bg-[#15294a]/70 px-5 py-2">
+              <span className="deck-lead font-semibold text-white">{nome}</span>
+              <span className="deck-peq font-mono tracking-wider text-[#e8b23a]">Nº {num}</span>
+            </div>
+          ))}
+        </div>
+        <p className="deck-peq text-[#b9c4d3]">Comunicação Móvel · ISCTEM 2026</p>
+      </div>
     </div>
   );
 }

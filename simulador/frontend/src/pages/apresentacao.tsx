@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { MutableRefObject } from 'react';
+import type { CSSProperties, MutableRefObject } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -130,10 +130,24 @@ function VistaSlides({ idx, irPara }: { idx: number; irPara: (n: number) => void
   const { result, error } = useSimulation();
   const estado = result?.network.estado;
 
+  // Direcção da transição, fixada só quando o slide muda (não em re-renders do simulador)
+  const prevIdx = useRef(idx);
+  const dirRef = useRef(1);
+  if (idx !== prevIdx.current) {
+    dirRef.current = idx > prevIdx.current ? 1 : -1;
+    prevIdx.current = idx;
+  }
+
   return (
     <div className="deck fixed inset-0 overflow-hidden bg-[#f6f4ee]">
       {/* Nos slides de ecrã cheio fica uma faixa em baixo para os controlos não taparem o simulador */}
-      <div key={slide.id} className={clsx('deck-entrar absolute inset-x-0 top-0', slide.ecraCheio ? 'bottom-9' : 'bottom-0')}><Conteudo /></div>
+      <div
+        key={slide.id}
+        className={clsx('absolute inset-x-0 top-0', slide.ecraCheio ? 'deck-entrar bottom-9' : 'deck-slide bottom-0')}
+        style={{ ['--dir' as string]: String(dirRef.current) } as CSSProperties}
+      >
+        <Conteudo />
+      </div>
 
       {error && (
         <div className="absolute top-0 inset-x-0 z-[2000] bg-red-600 text-white text-center text-sm py-1">

@@ -140,7 +140,8 @@ html, body {
 
 @media (prefers-reduced-motion: reduce) {
   .state-ping, .link-flow, .leaflet-link-ativo, .onda, .gota, .sol-rodar, .sat-flutuar,
-  .bateria-descarga, .alerta-piscar, .borda-critica, .chuva-overlay, .fade-slide-in {
+  .bateria-descarga, .alerta-piscar, .borda-critica, .chuva-overlay, .fade-slide-in,
+  .capa-logo, .deck-slide {
     animation: none !important;
   }
 }
@@ -148,17 +149,58 @@ html, body {
 /* ── Modo defesa: slides integrados com o simulador ──────────────────────────
    --u = 1 % da largura num ecrã 16:9 (encolhe em ecrãs mais baixos, para nada transbordar) */
 .deck { --u: min(1vw, 1.7778vh); font-family: 'Segoe UI', system-ui, sans-serif; color: #0f1e33; }
-.deck-eyebrow { font-size: max(11px, calc(var(--u) * 1.05)); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #b45309; }
-.deck-titulo  { font-size: max(20px, calc(var(--u) * 2.9));  font-weight: 800; line-height: 1.1; }
-.deck-capa    { font-size: max(28px, calc(var(--u) * 5));    font-weight: 800; line-height: 1.05; }
-.deck-lead    { font-size: max(15px, calc(var(--u) * 1.75)); line-height: 1.35; }
-.deck-texto   { font-size: max(13px, calc(var(--u) * 1.2));  line-height: 1.45; }
-.deck-peq     { font-size: max(11px, calc(var(--u) * 0.92)); line-height: 1.4; }
-.deck-num     { font-family: ui-monospace, Consolas, monospace; font-weight: 700; line-height: 1; font-size: max(22px, calc(var(--u) * 3.2)); }
-.deck-num-g   { font-family: ui-monospace, Consolas, monospace; font-weight: 700; line-height: 1; font-size: max(34px, calc(var(--u) * 6)); }
+.deck-eyebrow { font-size: max(13px, calc(var(--u) * 1.2));  font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #b45309; }
+.deck-titulo  { font-size: max(23px, calc(var(--u) * 3.1));  font-weight: 800; line-height: 1.1; }
+.deck-capa    { font-size: max(32px, calc(var(--u) * 5.2));  font-weight: 800; line-height: 1.05; }
+.deck-lead    { font-size: max(17px, calc(var(--u) * 1.98)); line-height: 1.35; }
+.deck-texto   { font-size: max(15px, calc(var(--u) * 1.4));  line-height: 1.45; }
+.deck-peq     { font-size: max(13px, calc(var(--u) * 1.06)); line-height: 1.4; }
+.deck-num     { font-family: ui-monospace, Consolas, monospace; font-weight: 700; line-height: 1; font-size: max(24px, calc(var(--u) * 3.4)); }
+.deck-num-g   { font-family: ui-monospace, Consolas, monospace; font-weight: 700; line-height: 1; font-size: max(38px, calc(var(--u) * 6.2)); }
 .deck-pad     { padding: calc(var(--u) * 3.2) calc(var(--u) * 4.5) calc(var(--u) * 4.2); }
 .deck-gap     { gap: calc(var(--u) * 1.6); }
 .deck-card    { background: #ffffff; border: 1px solid #e5e1d8; border-radius: calc(var(--u) * 1); padding: calc(var(--u) * 1.6); }
 
 @keyframes deck-entrar { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .deck-entrar { animation: deck-entrar .35s ease-out; }
+
+/* Transição direccional ao mudar de slide (--dir = 1 avança, -1 recua) */
+@keyframes deck-slide-in {
+  from { opacity: 0; transform: translateX(calc(var(--dir, 1) * 48px)) scale(.985); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.deck-slide { animation: deck-slide-in .45s cubic-bezier(.22, .61, .36, 1) both; }
+
+/* ── Capa da defesa: fundo de telecomunicações + medalhão ISCTEM ──────────── */
+.capa-fundo {
+  background:
+    radial-gradient(130% 100% at 50% 8%, #1a2f52 0%, #0f1e33 52%, #0a1527 100%);
+}
+/* Grelha técnica ténue, esbatida nas bordas */
+.capa-grelha {
+  background-image:
+    linear-gradient(rgba(122,162,215,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(122,162,215,.07) 1px, transparent 1px);
+  background-size: calc(var(--u) * 3.6) calc(var(--u) * 3.6);
+  -webkit-mask-image: radial-gradient(75% 75% at 50% 42%, #000 15%, transparent 72%);
+          mask-image: radial-gradient(75% 75% at 50% 42%, #000 15%, transparent 72%);
+}
+/* Medalhão circular que faz a logo saltar sobre o fundo escuro */
+@keyframes capa-brilho {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(232,178,58,.45), 0 0 calc(var(--u)*2.2) rgba(232,178,58,.25), 0 calc(var(--u)*.5) calc(var(--u)*1.6) rgba(0,0,0,.45); }
+  50%      { box-shadow: 0 0 0 1px rgba(232,178,58,.8),  0 0 calc(var(--u)*4.5) rgba(232,178,58,.55), 0 calc(var(--u)*.5) calc(var(--u)*1.6) rgba(0,0,0,.45); }
+}
+.capa-logo {
+  background: radial-gradient(circle at 50% 42%, #ffffff 0%, #f6f4ee 70%, #efe9da 100%);
+  border-radius: 999px;
+  animation: capa-brilho 3.6s ease-in-out infinite;
+}
+/* Etiquetas das tecnologias do enlace */
+.capa-chip {
+  display: inline-flex; align-items: center; gap: calc(var(--u) * .6);
+  border: 1px solid rgba(122,162,215,.35); border-radius: 999px;
+  padding: calc(var(--u) * .5) calc(var(--u) * 1.3);
+  background: rgba(21,41,74,.5); color: #dce6f4;
+  font-size: max(12px, calc(var(--u) * 1.05)); font-weight: 600; white-space: nowrap;
+}
+.capa-chip-ponto { width: calc(var(--u) * .7); height: calc(var(--u) * .7); border-radius: 999px; background: #e8b23a; flex: none; }
